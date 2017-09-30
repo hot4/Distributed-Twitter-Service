@@ -1,0 +1,38 @@
+To Do
+-----
+- Create Class
+	- User
+		- Functions:
+			- sendTweet(Tweet): Creates a new Tweet. Sends partial/full log all Users who are not blocked.
+			- view(): Display all tweets (User, Message, Time) in UTC order from most recent to oldest with current TimeZone. Ignore tweets from Users this User knows have blocked it.
+			- block(userName): Takes a userName as input. Adds this user to list of blocked users. Add block event to log that will be sent out with next tweet.
+			- unblock(userName): Takes a userName as input. Removes this user from the list of blocked users. Add unblock event to log that will be sent out with next tweet.
+			- hasRecv(T, eR, j): Checks whether or not, receipient User, j, has received event record, eR by checking T, a matrix of direct and indirect knowledge this User is aware of
+		- Fields:
+			- Block: A list of Users this User has blocked
+			- Unblock: A list of Users this User has not blocked
+			- TimeZone: Represents location specific time; i.e. EST. Used to convert to convert the tweet times to Coordinated Universal Time (UTC)
+			- UserName: Unique identifier
+	- Tweet
+		- Functions:
+		- Fields:
+				- User: Creator of tweet
+				- Message: The text of the tweet
+				- Time: From the physical clock of the mode where the tweet was created (must account for time zones)
+					- Suggestion: Replace physical clock with UTC timestamp
+- Wuu-Bernstein Algorithm
+	- Log
+	- Dictionary
+
+Design
+------
+	- UTC/Timezones for tweets
+
+Implementation
+--------------
+	- UTC/Timezones for tweets
+		- Description:
+		
+Deliverables
+------------	
+Turn in source code and a 2-page project report. Provide details of the design and implementation
