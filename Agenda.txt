@@ -7,23 +7,20 @@ To Do
 			- view(): Display all tweets (User, Message, Time) in UTC order from most recent to oldest with current TimeZone. Ignore tweets from Users this User knows have blocked it.
 			- block(userName): Takes a userName as input. Adds this user to list of blocked users. Add block event to log that will be sent out with next tweet.
 			- unblock(userName): Takes a userName as input. Removes this user from the list of blocked users. Add unblock event to log that will be sent out with next tweet.
-
 			- onEvent(): Increment cI, update Ti(i,i) value, create eR, and add eR to Log
 			              - If it's a tweet, create Tweet object and call sendTweet()
 			- hasRecv(T, eR, j): Checks whether or not, receipient User, j, has received event record, eR by checking T, a matrix of direct and indirect knowledge this User is aware of
 			- onRecv(Tweet, PartialLog, Tk): Updates this User's log, BlockedView (User's who have blocked this User), and MatrixT
-			- updateTi(Tk): Updates 
 		- Fields:
+			- UserName: Unique identifier
+			- TimeZone: Represents location specific time; i.e. EST. Used to convert to convert the tweet times to Coordinated Universal Time (UTC)
 			- BlockedUsers: A list of Users this User has blocked
 			- UnblockedUsers: A list of Users this User has not blocked
 			- BlockedViews: A list of Users this User cannot view tweets
-			- TimeZone: Represents location specific time; i.e. EST. Used to convert to convert the tweet times to Coordinated Universal Time (UTC)
-			- UserName: Unique identifier
-			- Log: An ordered list of events
-			- Event: Contains local events that have occurred
-			- MatrixT: An NxN matrix represnting direct and indirect knowledge of other matrices
-			- PartialLog: A list of events that some User does not know about
+			- Tweets: A list of Tweets this User has received
 			- Ci: Amount of events that have causaully occurred on this User
+			- MatrixT: An NxN matrix represnting direct and indirect knowledge of other matrices
+			- Log: An ordered list of events
 	- Tweet
 		- Functions:
 		- Fields:
