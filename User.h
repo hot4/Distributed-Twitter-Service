@@ -1,11 +1,11 @@
 #ifndef __User_h_
 #define __User_h_
 
-#include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 #include <map>
-#include <pair>
+#include <utility>
 #include "Tweet.h"
 #include "Event.h"
 
@@ -13,12 +13,17 @@ class User {
 	/* Constructor */
 	/**
 	  * @param userName: The name of the User
-	  * @param allUsers: A list of User's for this User to follow
+	  * @param index: Index value associated with this User in the matrix
 	  * @effects Creates a new User object
-	  * @modifies Private fields
+	  * @modifies userName, index, and cI private fields
 	  * @returns A new User object
 	  */
-	User(std::string userName, std::vector<User> allUsers);
+	User(std::string userName, int index);
+
+	/**
+	  * @param users: A list of Users for this User to follow
+      */
+	void follow(std::vector<User> users);
 
 	/**
 	  * @param tweet: A tweet the User will broadcast to other Users
@@ -26,7 +31,7 @@ class User {
       * @effects Creates a partial log of events recipient User does not know about
         @effects Sends tweet, Ti, and partial log to all receipients who are not blocked by this User
 	  */
-	void sendTweet(Tweet tweet, Ti);
+	void sendTweet(Tweet tweet, std::map<std::string, std::pair<int, std::vector<int> > > matrixT);
 
 	/**
 	  * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
@@ -63,7 +68,7 @@ class User {
 	  * @effects Checks if this User knows that userName knows about event eR has occured
 	  * @returns true if this User knows that the userName knows about the event and false otherwise
 	  */
-	bool hasRecv(std::map<std::string, std::pair<int, std::vector<int>>> matrixT, Event eR, std::String userName);
+	bool hasRecv(std::map<std::string, std::pair<int, std::vector<int> > > matrixT, Event eR, std::string userName);
 
 	/**
 	  * @param tweet: A tweet this User has received from the sending User
@@ -74,20 +79,41 @@ class User {
 	  * @effects Updates direct and indirect knowledge based on sending User's matrix
 	  * @modifies tweets, log, matrixT
 	  */
-	void onRecv(Tweet tweet, std::vector<Event> partialLog, std::map<std::string, std::pair<int, std::vector<int>>> matrixTk);
+	void onRecv(Tweet tweet, std::vector<Event> partialLog, std::map<std::string, std::pair<int, std::vector<int> > > matrixTk);
+
+	/**
+	  * @returns Private field index
+	  */
+	int getIndex();
+
+	/**
+	  * @param user: User for this User to follow
+	  * @effects Adds user to unblockedUsers
+	  * @modifies unblockedUsers 
+	  */
+	void addToUnblockedUser(User user);
+
+	/**
+	  * @param user: User for this User to know about
+	  * @effects Adds user to matrixT
+	  * @modifies matrixT
+	  */
+	void addToMatrixT(User user);
 
 	/* Private Fields*/
 private: 
 	/* The name of the User */
 	std::string userName;
+	/* Associated with index within matrix*/
+	int index;
 	/* ADD timeZone after figuring out how to get current machine's time zone */
 	
 	/* A list of Users this User has blocked */
-	std::vector<User> blockedUsers;
+	std::list<User> blockedUsers;
 	/* A list of Users this User has not blocked */
-	std::vector<User> unblockedUsers;
+	std::list<User> unblockedUsers;
 	/* A list of Users this User cannot view tweets */
-	std::vector<User> blockedView;
+	std::list<User> blockedView;
 	/* A list of Tweets this User has recevied */
 	std::vector<Tweet> tweets;
 	
@@ -96,7 +122,7 @@ private:
 	/* An NxN matrix representing direct and indirect knowledge of other Users */
 	/* Key: userName */
 	/* Value: Pair to hold index of User in matrix and an ordered list of integers that represent the causaully ordered events at that specific User */
-	std::map<std::string, std::pair<int, std::vector<int>>> matrixT;
+	std::map<std::string, std::pair<int, std::vector<int> > > matrixT;
 	/* An ordered list of events */
 	std::vector<Event> log;
 

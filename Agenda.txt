@@ -3,6 +3,7 @@ To Do
 - Create Class
 	- User
 		- Functions:
+			- follow(User(s)): Adds User to to unblockedUsers and update matrixT
 			- sendTweet(Tweet, Ti): Creates a PartialLog of events the receiver is not aware about and sends tweet, Ti, and PartialLog to all User's who are not blocked by this User
 			- view(): Display all tweets (User, Message, Time) in UTC order from most recent to oldest with current TimeZone. Ignore tweets from Users this User knows have blocked it.
 			- block(userName): Takes a userName as input. Adds this user to list of blocked users. Add block event to log that will be sent out with next tweet.
@@ -11,8 +12,12 @@ To Do
 			              - If it's a tweet, create Tweet object and call sendTweet()
 			- hasRecv(T, eR, j): Checks whether or not, receipient User, j, has received event record, eR by checking T, a matrix of direct and indirect knowledge this User is aware of
 			- onRecv(Tweet, PartialLog, Tk): Updates this User's log, BlockedView (User's who have blocked this User), and MatrixT
+			- getIndex(): Accessor to private field
+			- addToUnblockedUsers(User): Adds User to this User's unblockedUsers list
+			- addToMatrixT(User): Adds User to this User's matrixT
 		- Fields:
 			- UserName: Unique identifier
+			- Index: Associated with index value within matrix
 			- TimeZone: Represents location specific time; i.e. EST. Used to convert to convert the tweet times to Coordinated Universal Time (UTC)
 			- BlockedUsers: A list of Users this User has blocked
 			- UnblockedUsers: A list of Users this User has not blocked
