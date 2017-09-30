@@ -87,6 +87,16 @@ class User {
 	int getIndex();
 
 	/**
+	  * @returns Private field unblockedUsers
+	  */
+	std::list<User> getUnblockedUsers();
+
+	/**
+	  * @returns Private field log
+	  */
+	std::vector<Event> getLog();
+
+	/**
 	  * @param user: User for this User to follow
 	  * @effects Adds user to unblockedUsers
 	  * @modifies unblockedUsers 

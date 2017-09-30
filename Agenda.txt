@@ -13,6 +13,8 @@ To Do
 			- hasRecv(T, eR, j): Checks whether or not, receipient User, j, has received event record, eR by checking T, a matrix of direct and indirect knowledge this User is aware of
 			- onRecv(Tweet, PartialLog, Tk): Updates this User's log, BlockedView (User's who have blocked this User), and MatrixT
 			- getIndex(): Accessor to private field
+			- getLog(): Accessor to private field
+			- getUnblockedUsers(): Accessor private field
 			- addToUnblockedUsers(User): Adds User to this User's unblockedUsers list
 			- addToMatrixT(User): Adds User to this User's matrixT
 		- Fields:
