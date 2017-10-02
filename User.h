@@ -83,37 +83,37 @@ class User {
 	/**
 	  * @returns Private field
 	  */
-	std::string getUserName();	
+	std::string getUserName() const {return userName;}	
 
 	/**
 	  * @returns Private field index
 	  */
-	int getIndex();
+	int getIndex() const {return index;}
 
 	/**
 	  * @returns Private field blockedUsers
 	  */
-	std::list<User> getBlockedUsers();
+	std::list<User> getBlockedUsers() const {return blockedUsers;}
 
 	/**
 	  * @returns Private field unblockedUsers
 	  */
-	std::list<User> getUnblockedUsers();
+	std::list<User> getUnblockedUsers() const {return unblockedUsers;}
 
 	/**
 	  * @returns Private field tweets
 	  */
-	std::vector<Tweet> getTweets();
+	std::vector<Tweet> getTweets() const {return tweets;}
 
 	/**
 	  * @returns Private field matrixT
 	  */
-	std::map<User, std::vector<int> > getMatrixT();
+	std::map<User, std::vector<int> > getMatrixT() const {return matrixT;}
 
 	/**
 	  * @returns Private field Li
 	  */
-	std::vector<Event> getLog();
+	std::vector<Event> getLog() const {return Li;}
 
 	/**
 	  * @param user: User for this User to know about
