@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 #include <utility>
+#include "User.h"
 #include "Tweet.h"
 #include "Event.h"
 
@@ -16,17 +17,17 @@
   * @modifies Private fields
   * @returns A new User object
   */
-User::User(std::string userName int index) : userName_(userName), index_(index), cI_(0) {}
+User::User(std::string userName, int index) : userName(userName), index(index), cI(0) {}
 
 /**
   * @param users: A list of Users for this User to follow
   */
 void User::follow(std::vector<User> users) {
-	for (int i = 0; i < users.size(); i++) {
+	for (unsigned int i = 0; i < users.size(); i++) {
 		User user = users[i];
-		if (this.getIndex() == user.getInex() continue;
-		this.addToUnblockedUser(user);
-		this.addToMatrixT(user);
+		if (this->getIndex() == user.getIndex()) continue;
+		this->unblock(user.getUserName());
+		this->addToMatrixT(user);
 	}
 }
 
@@ -37,8 +38,8 @@ void User::follow(std::vector<User> users) {
     @effects Sends tweet, Ti, and partial log to all receipients who are not blocked by this User
   */
 void sendTweet(Tweet tweet, std::map<std::string, std::pair<int, std::vector<int> > > matrixT) {
-	std::vector<User> followers = this.getUnblockedUsers();
-	std::vector<Event> currLog = this.getLog();
+	std::vector<User> followers = this->getUnblockedUsers();
+	std::vector<Event> currLog = this->getLog();
 
 	std::vector<Event> partialLog;
 
@@ -53,7 +54,7 @@ void sendTweet(Tweet tweet, std::map<std::string, std::pair<int, std::vector<int
 			Event event = currLog[j];
 
 			/* Add event to partial log */
-			if (this.hasRecv(matrixT, event, currUser)) {
+			if (this->hasRecv(matrixT, event, currUser)) {
 				partialLog.pushBack(event);
 			}
 		}
@@ -66,8 +67,28 @@ void sendTweet(Tweet tweet, std::map<std::string, std::pair<int, std::vector<int
   * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
   */
 void view() {
-	std::vector<Tweet> tweets = this.getTweets();
+	std::vector<Tweet> tweets = this->getTweets();
 	for (int i = 0; i< tweets.size(); i++) {
 		/* TODO: Refer to Tweet class once implemented for accessor functions */
 	}
+}
+
+/**
+  * @param userName: The User this User wishes to block
+  * @effects Removes userName from unblockedUsers list and adds to blockedUsers list
+  * @modifies unblockedUser and blockedUsers private fields
+  */
+void block(std::string userName) {
+	std::vector<User> blocked = this->blockedUsers;
+	User user = NULL;
+
+	for (int i = 0; i < (this->unblockedUsers).size(); i++) {
+		user = (this->unblockedUsers)[i];
+		if (userName == user.getUserName()) {
+			(this->unblockedUsers).remove(user);
+			break;
+		}
+	}
+
+	(this->blockedUsers).add(user);
 }

@@ -82,9 +82,19 @@ class User {
 	void onRecv(Tweet tweet, std::vector<Event> partialLog, std::map<std::string, std::pair<int, std::vector<int> > > matrixTk);
 
 	/**
+	  * @returns Private field
+	  */
+	std::string getUserName();	
+
+	/**
 	  * @returns Private field index
 	  */
 	int getIndex();
+
+	/**
+	  * @returns Private field blockedUsers
+	  */
+	std::list<User> getBlockedUsers();
 
 	/**
 	  * @returns Private field unblockedUsers
@@ -92,21 +102,14 @@ class User {
 	std::list<User> getUnblockedUsers();
 
 	/**
-	  * @returns Private field log
+	  * @returns Private field tweets
 	  */
-	std::vector<Event> getLog();
-
-	/*
-	 * @returns Private field tweets
-	 */
 	std::vector<Tweet> getTweets();
 
 	/**
-	  * @param user: User for this User to follow
-	  * @effects Adds user to unblockedUsers
-	  * @modifies unblockedUsers 
+	  * @returns Private field log
 	  */
-	void addToUnblockedUser(User user);
+	std::vector<Event> getLog();
 
 	/**
 	  * @param user: User for this User to know about

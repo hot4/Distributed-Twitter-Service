@@ -16,7 +16,6 @@ To Do
 			- getLog(): Accessor to private field
 			- getUnblockedUsers(): Accessor to private field
 			- getTweets(): Accessor to private field
-			- addToUnblockedUsers(User): Adds User to this User's unblockedUsers list
 			- addToMatrixT(User): Adds User to this User's matrixT
 		- Fields:
 			- UserName: Unique identifier
