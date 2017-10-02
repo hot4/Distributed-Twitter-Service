@@ -5,7 +5,6 @@
 #include <vector>
 #include <list>
 #include <map>
-#include <utility>
 #include "User.h"
 #include "Tweet.h"
 #include "Event.h"
@@ -37,7 +36,7 @@ void User::follow(std::vector<User> users) {
   * @effects Creates a partial log of events recipient User does not know about
     @effects Sends tweet, Ti, and partial log to all receipients who are not blocked by this User
   */
-void sendTweet(Tweet tweet, std::map<std::string, std::pair<int, std::vector<int> > > matrixT) {
+void sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 	std::vector<User> followers = this->getUnblockedUsers();
 	std::vector<Event> currLog = this->getLog();
 
@@ -114,4 +113,23 @@ void unblock(std::string userName) {
 
 	/* Add user to unblockedList */
 	if (user != NULL) (this->unblockedUsers).add(user);
+}
+
+/**
+  * @effects Increments cI counter
+  * @effects Updates matrixT direct knowledge of itself; i.e. Ti(i,i)
+  * @effects Creates event eR and adds to log
+  * @effects If event type is Tweet, calls sendTweet()
+  * @modifies cI, matrixT, and log private fields
+  */
+void onEvent() {
+	/* Increment this User's counter */
+	(this->cI)++;
+
+	/* Get value based on key and then access index to increment this User's Ti(i,i) */
+	((this->matrixT)[this->getUserName()])[this->getIndex()]++;
+
+	/* TODO: Create Event based on Event class constructor */
+	/* TODO: Add event to log */
+	/* TODO: Type check Event and call sendTweet() if appropriate */
 }
