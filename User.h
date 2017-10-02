@@ -63,11 +63,11 @@ class User {
 	/**
 	  * @param matrixT: This User's matrix of direct and indirect knowledge
 	  * @param eR: The event that has occurred
-	  * @param userName: The recipient of the message
+	  * @param user: The recipient of the message
 	  * @effects Checks if this User knows that userName knows about event eR has occured
 	  * @returns true if this User knows that the userName knows about the event and false otherwise
 	  */
-	bool hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, std::string userName);
+	bool hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User user);
 
 	/**
 	  * @param tweet: A tweet this User has received from the sending User

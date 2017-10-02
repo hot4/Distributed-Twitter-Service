@@ -133,3 +133,18 @@ void onEvent() {
 	/* TODO: Add event to log */
 	/* TODO: Type check Event and call sendTweet() if appropriate */
 }
+
+/**
+  * @param matrixT: This User's matrix of direct and indirect knowledge
+  * @param eR: The event that has occurred
+  * @param user: The recipient of the message
+  * @effects Checks if this User knows that userName knows about event eR has occured
+  * @returns true if this User knows that the userName knows about the event and false otherwise
+  */
+bool hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User user) {
+	/* Get this User's indirect knowledge of the recipient user */
+	std::vector<int> indirectKnowledge = matrixT[user];
+	/* TODO: Use Event accessor functions to get node (location of event) and time (amount of causually preceding events */
+	/* return indirectKnowledge[eR.getNode()] >= eR.getTime() */
+	return false;
+}
