@@ -14,7 +14,8 @@ To Do
 			- onRecv(Tweet, PartialLog, Tk): Updates this User's log, BlockedView (User's who have blocked this User), and MatrixT
 			- getIndex(): Accessor to private field
 			- getLog(): Accessor to private field
-			- getUnblockedUsers(): Accessor private field
+			- getUnblockedUsers(): Accessor to private field
+			- getTweets(): Accessor to private field
 			- addToUnblockedUsers(User): Adds User to this User's unblockedUsers list
 			- addToMatrixT(User): Adds User to this User's matrixT
 		- Fields:

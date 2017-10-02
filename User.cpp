@@ -62,3 +62,12 @@ void sendTweet(Tweet tweet, std::map<std::string, std::pair<int, std::vector<int
 	}
 }
 
+/**
+  * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
+  */
+void view() {
+	std::vector<Tweet> tweets = this.getTweets();
+	for (int i = 0; i< tweets.size(); i++) {
+		/* TODO: Refer to Tweet class once implemented for accessor functions */
+	}
+}

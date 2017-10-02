@@ -96,6 +96,11 @@ class User {
 	  */
 	std::vector<Event> getLog();
 
+	/*
+	 * @returns Private field tweets
+	 */
+	std::vector<Tweet> getTweets();
+
 	/**
 	  * @param user: User for this User to follow
 	  * @effects Adds user to unblockedUsers
