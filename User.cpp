@@ -52,7 +52,6 @@ void sendTweet(Tweet tweet, std::map<std::string, std::pair<int, std::vector<int
 
 		for (int j = 0; j < currLog.size(); j++) {
 			Event event = currLog[j];
-
 			/* Add event to partial log */
 			if (this->hasRecv(matrixT, event, currUser)) {
 				partialLog.pushBack(event);
@@ -79,16 +78,40 @@ void view() {
   * @modifies unblockedUser and blockedUsers private fields
   */
 void block(std::string userName) {
-	std::vector<User> blocked = this->blockedUsers;
 	User user = NULL;
 
+	/* Loop through unblocked list to find userName */
 	for (int i = 0; i < (this->unblockedUsers).size(); i++) {
 		user = (this->unblockedUsers)[i];
+		/* Remove user from unblocked list */
 		if (userName == user.getUserName()) {
 			(this->unblockedUsers).remove(user);
 			break;
 		}
 	}
 
-	(this->blockedUsers).add(user);
+	/* Add user to blocked list */
+	if (user != NULL) (this->blockedUsers).add(user);
+}
+
+/**
+  * @param userName: The User, this User wishes to unblock
+  * @effects Removes userName from blockedUsers list and adds to unblockedUsers list
+  * @modifies blockedUsers and unblockedUsers private fields
+  */
+void unblock(std::string userName) {
+	User user = NULL;
+
+	/* Loop through blocked list to find userName */
+	for (int i = 0; i < (this->blockedUsers).size(); i++) {
+		user = (this->blockedUsers)[i];
+		/* Remove user from blocked list */
+		if (userName == user.getUserName()) {
+			(this->blockedUsers).remove(user);
+			break;
+		}
+	}
+
+	/* Add user to unblockedList */
+	if (user != NULL) (this->unblockedUsers).add(user);
 }
