@@ -50,6 +50,9 @@ To Do
 	- Log
 	- Dictionary
 
+- Add tweets once unblocked
+	- Need to figure out a way to go through the log for some distance of time and retrieve old tweets once unblocked
+
 Design
 ------
 	- UTC/Timezones for tweets

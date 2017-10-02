@@ -27,8 +27,8 @@ class User {
 	/**
 	  * @param tweet: A tweet the User will broadcast to other Users
 	  * @param Ti: User's matrix to help update recipient User to update direct and indirect knowledge
-      * @effects Creates a partial log of events recipient User does not know about
-        @effects Sends tweet, Ti, and partial log to all receipients who are not blocked by this User
+      * @effects Creates a partial Li of events recipient User does not know about
+        @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
 	  */
 	void sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT);
 
@@ -54,9 +54,9 @@ class User {
 	/**
 	  * @effects Increments cI counter
       * @effects Updates matrixT direct knowledge of itself; i.e. Ti(i,i)
-      * @effects Creates event eR and adds to log
+      * @effects Creates event eR and adds to Li
       * @effects If event type is Tweet, calls sendTweet()
-      * @modifies cI, matrixT, and log private fields
+      * @modifies cI, matrixT, and Li private fields
 	  */
 	void onEvent();
 
@@ -74,11 +74,11 @@ class User {
 	  * @param partialLog: A list of events this User is not aware about from the sending User
 	  * @param matrixTk: The sending User's matrix of direct and indirect knowledge
 	  * @effects Adds tweet to tweets
-	  * @effects Adds all events in the partialLog into log
+	  * @effects Adds all events in the partialLog into Li
 	  * @effects Updates direct and indirect knowledge based on sending User's matrix
-	  * @modifies tweets, log, matrixT
+	  * @modifies tweets, Li, matrixT
 	  */
-	void onRecv(Tweet tweet, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk);
+	void onRecv(std::vector<Tweet> tweetRecv, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk);
 
 	/**
 	  * @returns Private field
@@ -111,7 +111,7 @@ class User {
 	std::map<User, std::vector<int> > getMatrixT();
 
 	/**
-	  * @returns Private field log
+	  * @returns Private field Li
 	  */
 	std::vector<Event> getLog();
 
@@ -146,7 +146,7 @@ private:
 	/* Value: Pair to hold index of User in matrix and an ordered list of integers that represent the causaully ordered events at that specific User */
 	std::map<User, std::vector<int> > matrixT;
 	/* An ordered list of events */
-	std::vector<Event> log;
+	std::vector<Event> Li;
 
 };	
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <algorithm>
 #include "User.h"
 #include "Tweet.h"
 #include "Event.h"
@@ -33,8 +34,8 @@ void User::follow(std::vector<User> users) {
 /**
   * @param tweet: A tweet the User will broadcast to other Users
   * @param Ti: User's matrix to help update recipient User to update direct and indirect knowledge
-  * @effects Creates a partial log of events recipient User does not know about
-    @effects Sends tweet, Ti, and partial log to all receipients who are not blocked by this User
+  * @effects Creates a partial Li of events recipient User does not know about
+    @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
   */
 void sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 	std::vector<User> followers = this->getUnblockedUsers();
@@ -46,12 +47,12 @@ void sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 	for (int i = 0; i < followers.size(); i++) {
 		/* Get current follower */
 		User currUser = followers[i];
-		/* Clear partial log before adding events to this container that current follower is not aware about */
+		/* Clear partial Li before adding events to this container that current follower is not aware about */
 		partialLog.clear();
 
 		for (int j = 0; j < currLog.size(); j++) {
 			Event event = currLog[j];
-			/* Add event to partial log */
+			/* Add event to partial Li */
 			if (this->hasRecv(matrixT, event, currUser)) {
 				partialLog.pushBack(event);
 			}
@@ -118,19 +119,19 @@ void unblock(std::string userName) {
 /**
   * @effects Increments cI counter
   * @effects Updates matrixT direct knowledge of itself; i.e. Ti(i,i)
-  * @effects Creates event eR and adds to log
+  * @effects Creates event eR and adds to Li
   * @effects If event type is Tweet, calls sendTweet()
-  * @modifies cI, matrixT, and log private fields
+  * @modifies cI, matrixT, and Li private fields
   */
 void onEvent() {
 	/* Increment this User's counter */
 	(this->cI)++;
 
 	/* Get value based on key and then access index to increment this User's Ti(i,i) */
-	((this->matrixT)[this->getUserName()])[this->getIndex()]++;
+	((this->matrixT)[this])[this->getIndex()]++;
 
 	/* TODO: Create Event based on Event class constructor */
-	/* TODO: Add event to log */
+	/* TODO: Add event to Li */
 	/* TODO: Type check Event and call sendTweet() if appropriate */
 }
 
@@ -147,4 +148,47 @@ bool hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User user) {
 	/* TODO: Use Event accessor functions to get node (location of event) and time (amount of causually preceding events */
 	/* return indirectKnowledge[eR.getNode()] >= eR.getTime() */
 	return false;
+}
+
+/**
+  * @param tweet: A tweet this User has received from the sending User
+  * @param partialLog: A list of events this User is not aware about from the sending User
+  * @param matrixTk: The sending User's matrix of direct and indirect knowledge
+  * @effects Adds tweet to tweets
+  * @effects Adds all events in the partialLog into Li
+  * @effects Updates direct and indirect knowledge based on sending User's matrix
+  * @modifies tweets, Li, matrixT
+  */
+void onRecv(std::vector<Tweet> tweetsRecv, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk) {
+	/* Add all tweets sent from sending User to this User's tweets*/
+	(this->tweets).insert(std::begin(this->tweets), std::begin(tweetsRecv), std::end(tweetsRecv));
+	/* Add all events sent from sending User to this User's Li */
+	(this->Li).insert(std::begin(this->Li), std::begin(partialLog), std::end(partialLog));
+
+	std::map<User, std::vector<int> > selfMatrix = this->matrixT;
+	int amtOfUsers = selfMatrix.size();
+
+	/* Update direct knowledge */
+	/* TODO: Use Tweet accessor function to get User of tweet */
+	for (int j = 0; j < amtOfUsers; j++) {
+		/* Set Ti(i,j) = max of Ti(i, j) and Tk(k, j) */
+		// ((this->matrixT)[this])[j] = max((selfMatrix[this])[j], (matrixTk[tweet.getUser()])[j]);
+	}
+
+	/* Update indirect knowledge */
+	std::map<User, std::vector<int> >::iterator itrI = selfMatrix.begin();
+	std::map<User, std::vector<int> >::iterator itrK = matrixTk.begin();
+
+	while (itrI != selfMatrix..end()) {
+		/* Skip over direct knowledge */
+		if (this.getIndex() == (itr->first).getIndex) {
+			itrI++;
+			itrK++;
+			continue;
+		}
+		/* Set Ti(j,k) = max of Ti(j, l) and Tk (j, l) where i != j (Direct knowledge) */
+		for (int j = 0; j < amtOfUsers; j++) {
+			((this->matrixT)[itr->first][j]) = max((itrI->second)[j], (itrK->second)[j]);
+		}
+	}
 }
