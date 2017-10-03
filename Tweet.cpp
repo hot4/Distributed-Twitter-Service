@@ -7,4 +7,4 @@
   * @modifies user, message, rawTimeStamp private fields
   * @returns A new Tweet object
   */
-Tweet(User user, std::string message, time_t rawTimeStamp) : user(user), message(message), rawTimeStamp(rawTimeStamp) {}
+Tweet::Tweet(User &user, std::string message, time_t rawTimeStamp) : user(user), message(message), rawTimeStamp(rawTimeStamp) {}

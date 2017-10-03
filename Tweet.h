@@ -3,9 +3,11 @@
 
 #include <string>
 #include <time.h>
-#include "User.h"
+
+class User;
 
 class Tweet {
+public:
 	/* Constructor */
 	/**
 	  * @param user: Creator of tweet
@@ -14,12 +16,12 @@ class Tweet {
 	  * @modifies user, message, rawTimeStamp private fields
 	  * @returns A new Tweet object
 	  */
-	Tweet(User user, std::string message, time_t rawTimeStamp);
+	Tweet(User &user, std::string message, time_t rawTimeStamp);
 	
 	/**
 	  * @returns Private field user
 	  */
-	std::string getUser() const {return user;}
+	User& getUser() const {return user;}
 
 	/**
 	  * @returns Private field message
@@ -33,46 +35,8 @@ class Tweet {
 
 	/* Private Fields */
 private:
-	User user;
+	User &user;
 	std::string message;
 	time_t rawTimeStamp;
 };
-
 #endif
-
-/*
-	std::vector<time_t> times;
-
-	char buffer [80];
-
-	time_t rawtime;
-	struct tm * timeinfo;
-	
-	times.push_back(time (&rawtime));
-	timeinfo = localtime (&rawtime);
-	// std::cout << rawtime + "\n";
-
-	// time_t utcraw;
-	struct tm * ptm;
-
-	strftime (buffer,80,"Now it's %I:%M%p %z %Z.",timeinfo);
-	puts (buffer);
-
-	Need to call after strftime
-	// time (&utcraw);
-	ptm = gmtime ( &rawtime );
-	
-	strftime (buffer,80,"Now it's %I:%M%p %z %Z.",ptm);
-	puts (buffer);
-
-	std::sort(times.begin(), times.end());
-	for (unsigned int i = 0; i < times.size(); i++) {
-		// strftime(buffer, 80, "Yay! It's %I:%M%p %z %Z.", localtime(times[i]));
-		strftime (buffer,80,"Now it's %I:%M%p %z %Z.", localtime(&times[i]));
-		puts(buffer);
-		strftime (buffer,80,"Now it's %I:%M%p %z %Z.", gmtime(&times[i]));
-		puts(buffer);
-	}
-
-	std::cout << "Hello World!";
-*/
