@@ -1,5 +1,5 @@
-#ifndef __User_h_
-#define __User_h_
+#ifndef __USER_H_
+#define __USER_H_
 
 #include <string>
 #include <vector>
@@ -150,5 +150,4 @@ private:
 	std::vector<Event> Li;
 
 };	
-
 #endif
