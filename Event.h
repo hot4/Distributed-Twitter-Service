@@ -24,27 +24,27 @@ class Event {
 	/**
       * @returns Private field type
 	  */
-	std::string getType();
+	std::string getType() const {return type;}
 
 	/**
 	  * @returns Private field operation
 	  */
-	User& getOperation();
+	User& getOperation() const {return operation;}
 
 	/**
 	  * @returns Private field recipient
 	  */
-	User& getRecipient();
+	User& getRecipient() const {return recipient;}
 
 	/**
 	  * @returns Private field tweet
 	  */
-	Tweet& getTweet();
+	Tweet& getTweet() const {return tweet;}
 
 	/**
 	  * @returns Private field rawTimeStamp
 	  */
-	time_t getRawTimeStamp();
+	time_t getRawTimeStamp() const {return rawTimeStamp;}
 
 	/* Private Fields */
 private:
