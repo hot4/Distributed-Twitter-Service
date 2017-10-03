@@ -5,8 +5,9 @@
 #include <vector>
 #include <list>
 #include <map>
-#include "Tweet.h"
-#include "Event.h"
+
+class Tweet;
+class Event;
 
 class User {
 	/* Constructor */
@@ -122,7 +123,7 @@ class User {
 	  */
 	void addToMatrixT(User user);
 
-	/* Private Fields*/
+	/* Private Fields */
 private: 
 	/* The name of the User */
 	std::string userName;

@@ -1,14 +1,8 @@
 #include <string>
 #include <vector>
-
-#include <string>
-#include <vector>
 #include <list>
 #include <map>
 #include <algorithm>
-#include "User.h"
-#include "Tweet.h"
-#include "Event.h"
 
 /**
   * @param userName: The name of the User
