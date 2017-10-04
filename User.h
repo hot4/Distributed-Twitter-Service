@@ -75,19 +75,15 @@ public:
 
 	/**
 	  * @param type: Catergorized to be one the following values {block | unblock| tweet}
-	  * @param node: Location of where the event occurred (i.e. which User caused the event)
 	  * @param recipient: Location of where the event is received (i.e. which User received the event)
 	  * @param message: The message the node wants to broadcast to other processes
-	  * @param rawTimeStamp: Represents the time at which the User created the tweet with no timezone associated
-	                         The value returned generally represents the number of seconds since 00:00 hours, 
-	                         Jan 1, 1970 UTC (i.e., the current unix timestamp).
 	  * @effects Increments cI counter
       * @effects Updates matrixT direct knowledge of itself; i.e. Ti(i,i)
       * @effects Creates event eR and adds to Li
       * @effects If event type is Tweet, calls sendTweet()
       * @modifies cI, matrixT, and Li private fields
 	  */
-	void onEvent(std::string type, std::string node, std::string recipient, std::string message, time_t rawTimeStamp);
+	void onEvent(int type, std::pair<std::string, int> recipient, std::string message);
 
 	/**
 	  * @param matrixT: This User's matrix of direct and indirect knowledge
@@ -134,6 +130,11 @@ public:
 	  * @returns Private field tweets
 	  */
 	std::vector<Tweet> getTweets() const {return tweets;}
+
+	/**
+	  * @returns Private field cI
+	  */
+	int getcI() const {return cI;}
 
 	/**
 	  * @returns Private field matrixT
