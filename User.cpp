@@ -16,95 +16,113 @@
   */
 User::User(std::string userName, int index) : userName(userName), index(index), cI(0) {}
 
-// /**
-//   * @param users: A list of Users for this User to follow
-//   */
-// void User::follow(std::vector<User> users) {
-// 	for (unsigned int i = 0; i < users.size(); i++) {
-// 		User user = users[i];
-// 		if (this->getIndex() == user.getIndex()) continue;
-// 		this->unblock(user.getUserName());
-// 		this->addToMatrixT(user);
-// 	}
-// }
+/**
+  * @param u: User to compare to
+  * @returns true if both Users have the same userName
+  */
+bool operator== (const User &u) const {
+	return this->getUserName() == u.getUserName();
+}
 
-// /**
-//   * @param tweet: A tweet the User will broadcast to other Users
-//   * @param Ti: User's matrix to help update recipient User to update direct and indirect knowledge
-//   * @effects Creates a partial Li of events recipient User does not know about
-//     @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
-//   */
-// void User::sendTweet(Tweet &tweet, std::map<User, std::vector<int> > matrixT) {
-// 	std::vector<User> followers = this->getUnblockedUsers();
-// 	std::vector<Event> currLog = this->getLog();
+/**
+  * @param u: User to compare to
+  * @returns The alphabetic order of both Users based on userName
+  */
+bool operator< (const User &u) const {
+	return (this->getUserName()).compare(u.getUserName());
+}
 
-// 	std::vector<Event> partialLog;
+/**
+  * @param users: A list of Users for this User to follow
+  */
+void User::follow(std::vector<User> users) {
+	for (unsigned int i = 0; i < users.size(); i++) {
+		User user = users[i];
+		if (this->getIndex() == user.getIndex()) continue;
+		this->unblock(user.getUserName());
+		// this->addToMatrixT(user);
+	}
+}
 
-// 	/* Create a list of events the receipient User is not aware about to send */
-// 	for (int i = 0; i < followers.size(); i++) {
-// 		/* Get current follower */
-// 		User currUser = followers[i];
-// 		/* Clear partial Li before adding events to this container that current follower is not aware about */
-// 		partialLog.clear();
+/**
+  * @param tweet: A tweet the User will broadcast to other Users
+  * @param Ti: User's matrix to help update recipient User to update direct and indirect knowledge
+  * @effects Creates a partial Li of events recipient User does not know about
+    @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
+  */
+void User::sendTweet(Tweet &tweet, std::map<User, std::vector<int> > matrixT) {
+	std::list<User> followers = this->getUnblockedUsers();
+	std::vector<Event> currLog = this->getLog();
 
-// 		for (int j = 0; j < currLog.size(); j++) {
-// 			Event event = currLog[j];
-// 			/* Add event to partial Li */
-// 			if (this->hasRecv(matrixT, event, currUser)) {
-// 				partialLog.pushBack(event);
-// 			}
-// 		}
+	std::vector<Event> partialLog;
 
-// 		/* TODO: Broadcast message to current follower */
-// 	}
-// }
+	std::list<User>::iterator itr = followers.begin();
 
-// /**
-//   * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
-//   */
-// void User::view() {
-// 	std::vector<Tweet> tweets = this->getTweets();
-// 	int buffSize = 80;
-// 	char buffer [buffSize];
-// 	for (int i = 0; i< tweets.size(); i++) {
-// 		/* TODO: Refer to Tweet class once implemented for accessor functions */
-// 		strftime(buffer, buffSize, "%I:%M%p.", localtime(&tweet[i]));
+	/* Create a list of events the receipient User is not aware about to send */
+	while (itr != followers.end()) {
+		/* Get current follower */
+		User currUser = *itr;
+		/* Clear partial Li before adding events to this container that current follower is not aware about */
+		partialLog.clear();
 
-// 		/*
-// 			  	time_t rawtime;
-// 				struct tm * timeinfo;
-// 				char buffer [80];
+		for (unsigned int j = 0; j < currLog.size(); j++) {
+			Event event = currLog[j];
+			/* Add event to partial Li */
+			if (this->hasRecv(matrixT, event, currUser)) {
+				partialLog.push_back(event);
+			}
+		}
 
-// 				time (&rawtime);
-// 				timeinfo = localtime (&rawtime);
+		/* TODO: Broadcast message to current follower */
+	}
+}
 
-// 				strftime (buffer,80,"Now it's %I:%M%p.",timeinfo);
-// 				puts (buffer);
-// 		*/
-// 	}
-// }
+/**
+  * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
+  */
+void User::view() {
+	std::vector<Tweet> tweets = this->getTweets();
+	int buffSize = 80;
+	char buffer [buffSize];
+	for (unsigned int i = 0; i < tweets.size(); i++) {
+		/* TODO: Refer to Tweet class once implemented for accessor functions */
+		strftime(buffer, buffSize, "%I:%M%p.", localtime(&(tweets[i].getRawTimeStamp())));
 
-// /**
-//   * @param userName: The User this User wishes to block
-//   * @effects Removes userName from unblockedUsers list and adds to blockedUsers list
-//   * @modifies unblockedUser and blockedUsers private fields
-//   */
-// void User::block(std::string userName) {
-// 	User user = NULL;
+		/*
+			  	time_t rawtime;
+				struct tm * timeinfo;
+				char buffer [80];
 
-// 	/* Loop through unblocked list to find userName */
-// 	for (int i = 0; i < (this->unblockedUsers).size(); i++) {
-// 		user = (this->unblockedUsers)[i];
-// 		/* Remove user from unblocked list */
-// 		if (userName == user.getUserName()) {
-// 			(this->unblockedUsers).remove(user);
-// 			break;
-// 		}
-// 	}
+				time (&rawtime);
+				timeinfo = localtime (&rawtime);
 
-// 	/* Add user to blocked list */
-// 	if (user != NULL) (this->blockedUsers).add(user);
-// }
+				strftime (buffer,80,"Now it's %I:%M%p.",timeinfo);
+				puts (buffer);
+		*/
+	}
+}
+
+/**
+  * @param userName: The User this User wishes to block
+  * @effects Removes userName from unblockedUsers list and adds to blockedUsers list
+  * @modifies unblockedUser and blockedUsers private fields
+  */
+void User::block(std::string userName) {
+	std::list<User> unblockedUsers = this->unblockedUsers;
+
+	/* Loop through blocked list to find userName */
+	for (std::list<User>::iterator itr = unblockedUsers.begin(); itr != unblockedUsers.end(); itr++) {
+		User user = *itr;
+
+		if (user.getUserName() == userName) {
+			/* Remove User from unblocked list */
+			(this->unblockedUsers).remove(user);
+			/* Add User to blocked list */
+			(this->blockedUsers).push_back(user);
+			return;
+		}
+	}
+}
 
 /**
   * @param userName: The User, this User wishes to unblock
@@ -121,7 +139,7 @@ void User::unblock(std::string userName) {
 		if (user.getUserName() == userName) {
 			/* Remove User from blocked list */
 			(this->blockedUsers).remove(user);
-			// /* Add User to unblockedList */
+			/* Add User to unblockedList */
 			(this->unblockedUsers).push_back(user);
 			return;
 		}
