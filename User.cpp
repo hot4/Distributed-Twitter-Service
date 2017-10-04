@@ -1,4 +1,4 @@
-#include <iostream>
+#include <stdio.h>
 #include <string>
 #include <vector>
 #include <list>
@@ -62,7 +62,7 @@ void User::addToMatrixT(User user, std::vector<int> knowledge) {
   * @effects Creates a partial Li of events recipient User does not know about
     @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
   */
-void User::sendTweet(Tweet &tweet, std::map<User, std::vector<int> > matrixT) {
+void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 	std::list<User> followers = this->getUnblockedUsers();
 	std::vector<Event> currLog = this->getLog();
 
@@ -95,22 +95,17 @@ void User::sendTweet(Tweet &tweet, std::map<User, std::vector<int> > matrixT) {
 void User::view() {
 	std::vector<Tweet> tweets = this->getTweets();
 	int buffSize = 80;
-	char buffer [buffSize];
+
 	for (unsigned int i = 0; i < tweets.size(); i++) {
-		/* TODO: Refer to Tweet class once implemented for accessor functions */
-		strftime(buffer, buffSize, "%I:%M%p.", localtime(&(tweets[i].getRawTimeStamp())));
-
-		/*
-			  	time_t rawtime;
-				struct tm * timeinfo;
-				char buffer [80];
-
-				time (&rawtime);
-				timeinfo = localtime (&rawtime);
-
-				strftime (buffer,80,"Now it's %I:%M%p.",timeinfo);
-				puts (buffer);
-		*/
+		Tweet tweet = tweets[i];
+		/* Print userName */
+		printf("User: %s\n", tweet.getUserName().c_str());
+		/* Print message */
+		printf("Message: %s\n", tweet.getMessage().c_str());
+		/* Print local timestamp */
+		char buffer [buffSize];
+		strftime(buffer, buffSize, "%I:%M%p.\n\n", localtime(&(tweet.getRawTimeStamp())));
+		puts(buffer);
 	}
 }
 
@@ -159,22 +154,43 @@ void User::unblock(std::string userName) {
 }
 
 /**
+  * @param type: Catergorized to be one the following values {block | unblock| tweet}
+  * @param node: Location of where the event occurred (i.e. which User caused the event)
+  * @param recipient: Location of where the event is received (i.e. which User received the event)
+  * @param message: The message the node wants to broadcast to other processes
+  * @param rawTimeStamp: Represents the time at which the User created the tweet with no timezone associated
+                         The value returned generally represents the number of seconds since 00:00 hours, 
+                         Jan 1, 1970 UTC (i.e., the current unix timestamp).
   * @effects Increments cI counter
   * @effects Updates matrixT direct knowledge of itself; i.e. Ti(i,i)
   * @effects Creates event eR and adds to Li
   * @effects If event type is Tweet, calls sendTweet()
   * @modifies cI, matrixT, and Li private fields
   */
-void User::onEvent() {
+void User::onEvent(std::string type, std::string node, std::string recipient, std::string message, time_t rawTimeStamp) {
 	/* Increment this User's counter */
 	(this->cI)++;
 
 	/* Get value based on key and then access index to increment this User's Ti(i,i) */
 	((this->matrixT)[*this])[this->getIndex()]++;
 
-	/* TODO: Create Event based on Event class constructor */
-	/* TODO: Add event to Li */
-	/* TODO: Type check Event and call sendTweet() if appropriate */
+	Event event;
+	Tweet tweet;
+	/* Check if event is tweet */
+	if (recipient.empty() && message.empty()) {
+		/* Create unblock/block event */
+		event = Event(type, node, rawTimeStamp);
+	} else {
+		/* Create tweet object and tweet event */
+		tweet = Tweet(node, message, rawTimeStamp);
+		event = Event(type, node, recipient, message, rawTimeStamp);
+	}
+
+	(this->Li).push_back(event);
+
+	if (event.getType() == "Tweet") {
+		sendTweet(tweet, (this->getMatrixT()));
+	}
 }
 
 /**
@@ -193,6 +209,7 @@ bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User use
 }
 
 /**
+  * @param sender: User who sent message
   * @param tweet: A tweet this User has received from the sending User
   * @param partialLog: A list of events this User is not aware about from the sending User
   * @param matrixTk: The sending User's matrix of direct and indirect knowledge
@@ -201,20 +218,19 @@ bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User use
   * @effects Updates direct and indirect knowledge based on sending User's matrix
   * @modifies tweets, Li, matrixT
   */
-void User::onRecv(std::vector<Tweet> tweetsRecv, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk) {
+void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk) {
 	/* Add all tweets sent from sending User to this User's tweets*/
-	(this->tweets).insert((this->tweets).end(), tweetsRecv.begin(), tweetsRecv.end());
+	(this->tweets).push_back(tweet);
 	/* Add all events sent from sending User to this User's Li */
-	// (this->Li).insert((this->Li).end(), partialLog.begin(), partialLog.end());
+	(this->Li).insert((this->Li).end(), partialLog.begin(), partialLog.end());
 
 	std::map<User, std::vector<int> > selfMatrix = this->matrixT;
 	int amtOfUsers = selfMatrix.size();
 
 	/* Update direct knowledge */
-	/* TODO: Use Tweet accessor function to get User of tweet */
 	for (int j = 0; j < amtOfUsers; j++) {
 		/* Set Ti(i,j) = max of Ti(i, j) and Tk(k, j) */
-		// ((this->matrixT)[this])[j] = max((selfMatrix[this])[j], (matrixTk[tweet.getUser()])[j]);
+		((this->matrixT)[*this])[j] = std::max((selfMatrix[*this])[j], (matrixTk[sender])[j]);
 	}
 
 	/* Update indirect knowledge */

@@ -5,29 +5,42 @@
 
 class Event {
 	/* Constructor */
+public:
 	/**
-	  * @param type: Catergorized to be one the following values {block | unblock| tweet}
-	  * @param operation: Location of where the event occurred (i.e. which User caused the event)
-	  * @param rawTimeStamp: Represents the time at which the User created the tweet with no timezone associated
-	                         The value returned generally represents the number of seconds since 00:00 hours, 
-	                         Jan 1, 1970 UTC (i.e., the current unix timestamp).
-	  * @modifies type, operation, and rawTimeStamp private fields
-	  * @retunrs A new Event object
+	  * @effects Creates a default Event object
+	  * @returns A new Event object
 	  */
-	Event(std::string type, std::string operation, time_t rawTimeStamp);
+	Event();
 
 	/**
 	  * @param type: Catergorized to be one the following values {block | unblock| tweet}
-	  * @param operation: Location of where the event occurred (i.e. which User caused the event)
-	  * @param recipient: Location of where the event is received (i.e. which User received the event)
-	  * @param message: The message the operation wants to broadcast to other processes
+	  * @param node: Location of where the event occurred (i.e. which User caused the event)
 	  * @param rawTimeStamp: Represents the time at which the User created the tweet with no timezone associated
 	                         The value returned generally represents the number of seconds since 00:00 hours, 
 	                         Jan 1, 1970 UTC (i.e., the current unix timestamp).
-	  * @modifies type, operation, recipient, message, and rawTimeStamp private fields
+	  * @modifies type, node, and rawTimeStamp private fields
 	  * @retunrs A new Event object
 	  */
-	Event(std::string type, std::string operation, std::string recipient, std::string message, time_t rawTimeStamp);
+	Event(std::string type, std::string node, time_t rawTimeStamp);
+
+	/**
+	  * @param type: Catergorized to be one the following values {block | unblock| tweet}
+	  * @param node: Location of where the event occurred (i.e. which User caused the event)
+	  * @param recipient: Location of where the event is received (i.e. which User received the event)
+	  * @param message: The message the node wants to broadcast to other processes
+	  * @param rawTimeStamp: Represents the time at which the User created the tweet with no timezone associated
+	                         The value returned generally represents the number of seconds since 00:00 hours, 
+	                         Jan 1, 1970 UTC (i.e., the current unix timestamp).
+	  * @modifies type, node, recipient, message, and rawTimeStamp private fields
+	  * @retunrs A new Event object
+	  */
+	Event(std::string type, std::string node, std::string recipient, std::string message, time_t rawTimeStamp);
+
+	/**
+	  * @param e: Event to assign values from
+	  * @returns this Event with t values
+	  */
+	Event& operator= (const Event &e);
 
 	/**
       * @returns Private field type
@@ -35,9 +48,9 @@ class Event {
 	std::string getType() const {return type;}
 
 	/**
-	  * @returns Private field operation
+	  * @returns Private field node
 	  */
-	std::string getOperation() const {return operation;}
+	std::string getNode() const {return node;}
 
 	/**
 	  * @returns Private field recipient
@@ -57,7 +70,7 @@ class Event {
 	/* Private Fields */
 private:
 	std::string type;
-	std::string operation;
+	std::string node;
 	std::string recipient;
 	std::string message;
 	time_t rawTimeStamp;

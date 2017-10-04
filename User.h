@@ -52,7 +52,7 @@ public:
       * @effects Creates a partial Li of events recipient User does not know about
         @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
 	  */
-	void sendTweet(Tweet &tweet, std::map<User, std::vector<int> > matrixT);
+	void sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT);
 
 	/**
 	  * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
@@ -74,13 +74,20 @@ public:
 	void unblock(std::string userName);
 
 	/**
+	  * @param type: Catergorized to be one the following values {block | unblock| tweet}
+	  * @param node: Location of where the event occurred (i.e. which User caused the event)
+	  * @param recipient: Location of where the event is received (i.e. which User received the event)
+	  * @param message: The message the node wants to broadcast to other processes
+	  * @param rawTimeStamp: Represents the time at which the User created the tweet with no timezone associated
+	                         The value returned generally represents the number of seconds since 00:00 hours, 
+	                         Jan 1, 1970 UTC (i.e., the current unix timestamp).
 	  * @effects Increments cI counter
       * @effects Updates matrixT direct knowledge of itself; i.e. Ti(i,i)
       * @effects Creates event eR and adds to Li
       * @effects If event type is Tweet, calls sendTweet()
       * @modifies cI, matrixT, and Li private fields
 	  */
-	void onEvent();
+	void onEvent(std::string type, std::string node, std::string recipient, std::string message, time_t rawTimeStamp);
 
 	/**
 	  * @param matrixT: This User's matrix of direct and indirect knowledge
@@ -92,6 +99,7 @@ public:
 	bool hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User user);
 
 	/**
+	  * @param sender: User who sent message
 	  * @param tweet: A tweet this User has received from the sending User
 	  * @param partialLog: A list of events this User is not aware about from the sending User
 	  * @param matrixTk: The sending User's matrix of direct and indirect knowledge
@@ -100,7 +108,7 @@ public:
 	  * @effects Updates direct and indirect knowledge based on sending User's matrix
 	  * @modifies tweets, Li, matrixT
 	  */
-	void onRecv(std::vector<Tweet> tweetRecv, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk);
+	void onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk);
 
 	/**
 	  * @returns Private field
