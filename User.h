@@ -5,11 +5,11 @@
 #include <vector>
 #include <list>
 #include <map>
-
-class Tweet;
-class Event;
+#include "Tweet.h"
+#include "Event.h"
 
 class User {
+public:
 	/* Constructor */
 	/**
 	  * @param userName: The name of the User
@@ -19,6 +19,18 @@ class User {
 	  * @returns A new User object
 	  */
 	User(std::string userName, int index);
+
+	/**
+	  * @param u: User to compare to
+	  * @returns true if both Users have the same userName
+	  */
+	bool operator== (const User &u) const {return this->getUserName() == u.getUserName();}
+
+	/**
+	  * @param u: User to compare to
+	  * @returns The alphabetic order of both Users based on userName
+	  */
+	bool operator< (const User &u) const {return (this->getUserName()).compare(u.getUserName());}
 
 	/**
 	  * @param users: A list of Users for this User to follow
@@ -31,7 +43,7 @@ class User {
       * @effects Creates a partial Li of events recipient User does not know about
         @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
 	  */
-	void sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT);
+	void sendTweet(Tweet &tweet, std::map<User, std::vector<int> > matrixT);
 
 	/**
 	  * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
