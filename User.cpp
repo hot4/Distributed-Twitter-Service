@@ -278,16 +278,16 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::
 		eventRecipientName = currEvent.getRecipient().first;
 
 		/* Check if this User is the recipient of some event */
-		if (eventRecipientName == this->getUserName) {
+		if (eventRecipientName == this->getUserName()) {
 			/* Switch on event type */
-			switch (currEvent.getType() {
+			switch (currEvent.getType()) {
 				/* This User is blocked from viewing this node's tweets */
 				case 2:
-					 this->blockView(eventUserName);
+					 this->blockView(eventNodeName);
 					break;
 				/* This User is being unblocked from viewing this node's tweets */
 				case 3:
-					this->unblockView(eventUserName);
+					this->unblockView(eventNodeName);
 					break;
 			}
 		}
