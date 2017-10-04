@@ -20,7 +20,7 @@ User::User(std::string userName, int index) : userName(userName), index(index), 
   * @param u: User to compare to
   * @returns true if both Users have the same userName
   */
-bool operator== (const User &u) const {
+bool User::operator== (const User &u) const {
 	return this->getUserName() == u.getUserName();
 }
 
@@ -28,20 +28,32 @@ bool operator== (const User &u) const {
   * @param u: User to compare to
   * @returns The alphabetic order of both Users based on userName
   */
-bool operator< (const User &u) const {
+bool User::operator< (const User &u) const {
 	return (this->getUserName()).compare(u.getUserName());
 }
 
 /**
   * @param users: A list of Users for this User to follow
+  * @effects Adds all Users to this User's unblockedUsers list and adds a knowledge row within the matrix for this User
+  * @modifies unblockedUsers and matrixT private fields
   */
 void User::follow(std::vector<User> users) {
 	for (unsigned int i = 0; i < users.size(); i++) {
 		User user = users[i];
 		if (this->getIndex() == user.getIndex()) continue;
 		this->unblock(user.getUserName());
-		// this->addToMatrixT(user);
+		std::vector<int> knowledge(users.size(), 0);
+		this->addToMatrixT(user, knowledge);
 	}
+}
+
+/**
+  * @param user: User for this User to know about
+  * @effects Adds user to matrixT
+  * @modifies matrixT
+  */
+void User::addToMatrixT(User user, std::vector<int> knowledge) {
+	(this->matrixT).insert(std::pair<User, std::vector<int> >(user, knowledge));	
 }
 
 /**

@@ -24,18 +24,27 @@ public:
 	  * @param u: User to compare to
 	  * @returns true if both Users have the same userName
 	  */
-	bool operator== (const User &u) const {return this->getUserName() == u.getUserName();}
+	bool operator== (const User &u) const;
 
 	/**
 	  * @param u: User to compare to
 	  * @returns The alphabetic order of both Users based on userName
 	  */
-	bool operator< (const User &u) const {return (this->getUserName()).compare(u.getUserName());}
+	bool operator< (const User &u) const;
 
 	/**
 	  * @param users: A list of Users for this User to follow
+	  * @effects Adds all Users to this User's unblockedUsers list and adds a knowledge row within the matrix for this User
+	  * @modies unblockedUsers and matrixT private fields
       */
 	void follow(std::vector<User> users);
+
+	/**
+	  * @param user: User for this User to know about
+	  * @effects Adds user to matrixT
+	  * @modifies matrixT
+	  */
+	void addToMatrixT(User user, std::vector<int> knowledge);
 
 	/**
 	  * @param tweet: A tweet the User will broadcast to other Users
@@ -127,13 +136,6 @@ public:
 	  * @returns Private field Li
 	  */
 	std::vector<Event> getLog() const {return Li;}
-
-	/**
-	  * @param user: User for this User to know about
-	  * @effects Adds user to matrixT
-	  * @modifies matrixT
-	  */
-	void addToMatrixT(User user);
 
 	/* Private Fields */
 private: 
