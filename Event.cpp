@@ -1,4 +1,5 @@
 #include "Event.h"
+
 /**
   * @effects Creates a default Event object
   * @returns A new Event object

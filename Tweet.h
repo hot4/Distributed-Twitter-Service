@@ -15,11 +15,12 @@ public:
 	
 	/**
 	  * @param userName: Creator of tweet
+	  * @param user: Creator of tweet
 	  * @param message: The contents of the tweet 
 	  * @param rawTimeStamp: Represents the time at which the User created the tweet with no timezone associated
 	                         The value returned generally represents the number of seconds since 00:00 hours, 
 	                         Jan 1, 1970 UTC (i.e., the current unix timestamp).
-      * @effects Creates a new Tweet object	                         
+    * @effects Creates a new Tweet object	                         
 	  * @modifies user, message, rawTimeStamp private fields
 	  * @returns A new Tweet object
 	  */
@@ -42,7 +43,7 @@ public:
 	std::string getMessage() const {return message;}
 
 	/**
-      * @returns Private field rawTimeStamp
+    * @returns Private field rawTimeStamp
 	  */
 	const time_t& getRawTimeStamp() const {return rawTimeStamp;}
 
