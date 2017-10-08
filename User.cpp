@@ -88,7 +88,6 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 
 	/* Temporary place holder */
 	std::string currUserName;
-	std::map<std::string, std::list<Event> > partialLog = this->getPartialLog();
 
 	/* Iterator for blocked status for all Users */
 	std::map<std::string, std::pair<bool, bool> > blockedStatus = this->getBlockedStatus();
@@ -101,13 +100,12 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 		currUserName = itr->first;
 		/* Given this is not this User and the current User is not blocked */
 		if (((this->getUserName()) != currUserName) && !(this->getUserBlockedStatus(currUserName)).first) {
-			std::list<Event> missingKnowledge = partialLog[currUserName];
-			std::list<Event>::iterator itr = missingKnowledge.begin();
-			while (itr != missingKnowledge.end()) {
+			std::list<Event>::iterator itr = this->partialLog[currUserName].begin();
+			while (itr != this->partialLog[currUserName].end()) {
 				/* Get current event that recipient supposedly does not know about this Event */
 				Event event = *itr;
 				/* Verify that recipient does not know about this Event */
-				if (this->hasRecv(matrixT, event, currUserName)) {
+				if (!(this->hasRecv(matrixT, event, currUserName))) {
 					/* Add event to container of Events recipient should receive */
 					NP.push_back(event);
 					itr++;
@@ -350,17 +348,31 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 		itrK++;
 	}
 
-	/* Update partialLog based on Events sending User had send this User */
-	std::list<Event> missingKnowledge = this->getPartialLog()[sender.getUserName()];
-	/* Iterate through missing knowledge of sender and remove any Events that sender is already aware about */
-	for (unsigned int i = 0; i < NP.size(); i++) {
-		/* Get current event */
-		Event event = NP[i];
-		std::list<Event>::iterator itr = missingKnowledge.begin();
-		while (itr != missingKnowledge.end()) {
-			// if (event.get)
-		}
-	}
+	/* Update partialLog */
+	// std::map<std::string, std::list<Event> > partialLog = this->getPartialLog;
+
+	// /* Update partialLog based on Events sending User had send this User */
+	// /* This User's partialLog for sender */
+	// std::list<Event> missingKnowledge = this->getPartialLog()[sender.getUserName()];
+	// /* Iterate through missing knowledge of sender and remove any Events that sender is already aware about */
+	// for (unsigned int i = 0; i < NP.size(); i++) {
+	// 	/* Get current event */
+	// 	Event event = NP[i];
+	// 	/* Iterator for missingKnowledge */
+	// 	std::list<Event>::iterator itr = missingKnowledge.begin();
+	// 	 Loop through this User's partialLog for sender and see if any Events sender provided to this User can be removed from partialLog 
+	// 	while (itr != missingKnowledge.end()) {
+	// 		/* Check if sender already knows about an event in the partialLog */
+	// 		if (event == *itr) {
+	// 			/* Delete from partialLog and break because only one event can be equal another */
+	// 			(this->partialLog)[sender.getUserName()].erase(itr);
+	// 			break;
+	// 		} else {
+	// 			/* Increment iterator to check the rest of the partialLog */
+	// 			itr++;
+	// 		}
+	// 	}
+	// }
 }
 
 /**
