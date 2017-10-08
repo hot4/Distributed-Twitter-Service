@@ -12,6 +12,12 @@ class User {
 public:
 	/* Constructor */
 	/**
+	  * @effects Creates a default User object
+	  * @returns A new User object
+	  */
+	User();
+
+	/**
 	  * @param userName: The name of the User
 	  * @param index: Index value associated with this User in the matrix
 	  * @effects Creates a new User object
@@ -74,6 +80,20 @@ public:
 	void unblock(std::string userName);
 
 	/**
+	  * @param userName: The User who does not want this User to view their tweets
+	  * @effects Sets this User's knowledge about being blocked to true based on the userName
+	  * @modifies blockedStatus private field
+	  */
+	void blockView(std::string userName);
+
+	/**
+	  * @param userName: The User who does want this User to view their tweets
+	  * @effects Sets this User's knowledge about being blocked to false based on the userName
+	  * @modifies blockedStatus private field
+	  */
+	void unblockView(std::string userName);
+
+	/**
 	  * @param type: Catergorized to be one the following values {block | unblock| tweet}
 	  * @param recipient: Location of where the event is received (i.e. which User received the event)
 	  * @param message: The message the node wants to broadcast to other processes
@@ -88,11 +108,11 @@ public:
 	/**
 	  * @param matrixT: This User's matrix of direct and indirect knowledge
 	  * @param eR: The event that has occurred
-	  * @param user: The recipient of the message
+	  * @param userName: The recipient of the message
 	  * @effects Checks if this User knows that userName knows about event eR has occured
 	  * @returns true if this User knows that the userName knows about the event and false otherwise
 	  */
-	bool hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User user);
+	bool hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, std::string userName);
 
 	/**
 	  * @param sender: User who sent message
@@ -117,14 +137,15 @@ public:
 	int getIndex() const {return index;}
 
 	/**
-	  * @returns Private field blockedUsers
+	  * @returns Private field blockedStatus
 	  */
-	std::list<User> getBlockedUsers() const {return blockedUsers;}
+	std::map<std::string, std::pair<bool, bool> > getBlockedStatus() const {return blockedStatus;}
 
 	/**
-	  * @returns Private field unblockedUsers
+	  * @param userName: User to compare blocked status to
+	  * @returns Relationship between this user and other User
 	  */
-	std::list<User> getUnblockedUsers() const {return unblockedUsers;}
+	std::pair<bool, bool> getUserBlockedStatus(std::string userName);
 
 	/**
 	  * @returns Private field tweets
@@ -154,12 +175,11 @@ private:
 	int index;
 	/* ADD timeZone after figuring out how to get current machine's time zone */
 	
-	/* A list of Users this User has blocked */
-	std::list<User> blockedUsers;
-	/* A list of Users this User has not blocked */
-	std::list<User> unblockedUsers;
-	/* A list of Users this User cannot view tweets */
-	std::list<User> blockedView;
+	/* A map of blocked status based on other Users */
+	/* Key: User -> userName */
+	/* Value: pair.first -> Represents if this User blocked the userName */
+	/*        pair.second-> Represents if this User is blocked by the userName */
+	std::map<std::string, std::pair<bool, bool> > blockedStatus;
 	/* A list of Tweets this User has recevied */
 	std::vector<Tweet> tweets;
 	

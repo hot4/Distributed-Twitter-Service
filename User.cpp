@@ -8,6 +8,12 @@
 #include "User.h"
 
 /**
+  * @effects Creates a default User object
+  * @returns A new User object
+  */
+User::User(){}
+
+/**
   * @param userName: The name of the User
   * @param index: Index value associated with this User in the matrix
   * @effects Creates a new User object
@@ -34,14 +40,19 @@ bool User::operator< (const User &u) const {
 
 /**
   * @param users: A list of Users for this User to follow
-  * @effects Adds all Users to this User's unblockedUsers list and adds a knowledge row within the matrix for this User
-  * @modifies unblockedUsers and matrixT private fields
+  * @effects Sets blockedStatus from this User's perspective to other Users as false
+  * @modifies blockedStatus and matrixT private fields
   */
 void User::follow(std::vector<User> users) {
 	for (unsigned int i = 0; i < users.size(); i++) {
+		/* Get current user */
 		User user = users[i];
-		if (this->getIndex() == user.getIndex()) continue;
-		this->unblock(user.getUserName());
+
+		/* Initialize relationship represent this User follows and is not blocked by current User */
+		(this->blockedStatus)[user.getUserName()].first = false;
+		(this->blockedStatus)[user.getUserName()].second = false;
+
+		/* Insert knowledge of current User into matrixT */
 		std::vector<int> knowledge(users.size(), 0);
 		this->addToMatrixT(user, knowledge);
 	}
@@ -66,33 +77,32 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 	/* Add tweet to tweets */
 	(this->tweets).push_back(tweet);
 
-	/* Temporoary placeholders */
-	std::list<User> followers = this->getUnblockedUsers();
+	/* Temporary placeholder */
+	std::string currUserName;
 	std::vector<Event> currLog = this->getLog();
 
 	/* Container for Events to send to recipient */
 	std::vector<Event> partialLog;
 
-	/* Iterator for unblockedUsers */
-	std::list<User>::iterator itr = followers.begin();
+	/* Iterator for blocked status for all Users */
+	std::map<std::string, std::pair<bool, bool> > blockedStatus = this->getBlockedStatus();
+	std::map<std::string, std::pair<bool, bool> >::iterator itr = blockedStatus.begin();
 
-	/* Loop through all unblockedUsers to send the tweet */
-	while (itr != followers.end()) {
-		/* Get current follower */
-		User currUser = *itr;
-		/* Clear partial Li */
-		partialLog.clear();
-
-		/* Loop through this User's Li and create a list of Events the current unblockedUser is not aware about */
-		for (unsigned int j = 0; j < currLog.size(); j++) {
-			Event event = currLog[j];
-			/* Add event to partial Li */
-			if (this->hasRecv(matrixT, event, currUser)) {
-				partialLog.push_back(event);
+	while (itr != blockedStatus.end()) {
+		currUserName = itr->first;
+		/* Given this is not this User and the current User is not blocked */
+		if (((this->getUserName()) != currUserName) && !(this->getUserBlockedStatus(currUserName)).first) {
+			for (unsigned int i = 0; i < currLog.size(); i++) {
+				Event event = currLog[i];
+				/* Add event to partial Li */
+				if (this->hasRecv(matrixT, event, currUserName)) {
+					partialLog.push_back(event);
+				}
 			}
 		}
 
 		/* TODO: Broadcast message to current follower */
+		itr++;
 	}
 }
 
@@ -100,68 +110,71 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
   * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
   */
 void User::view() {
+	/* Get list of this Users tweets */
 	std::vector<Tweet> tweets = this->getTweets();
+
+	/* Iterator for blocked status */
+	std::map<std::string, std::pair<bool, bool> > blockedStatus = this->getBlockedStatus();
+	std::map<std::string, std::pair<bool, bool> >::iterator itr;
+
+	/* Fixed buffer size */
 	int buffSize = 80;
 
+	/* Loop over all tweets and print if this User is not blocked */
 	for (unsigned int i = 0; i < tweets.size(); i++) {
+		/* Get current tweet */
 		Tweet tweet = tweets[i];
-		/* Print userName */
-		printf("User: %s\n", tweet.getUserName().c_str());
-		/* Print message */
-		printf("Message: %s\n", tweet.getMessage().c_str());
-		/* Print local timestamp */
-		char buffer [buffSize];
-		strftime(buffer, buffSize, "%I:%M%p.\n\n", localtime(&(tweet.getRawTimeStamp())));
-		puts(buffer);
+
+		/* Check if this User is blocked from seeing the creator of the current tweet's tweets*/
+		itr = blockedStatus.find(tweet.getUserName());
+		if (!(itr->second).second) {
+			/* Print userName */
+			printf("User: %s\n", tweet.getUserName().c_str());
+			/* Print message */
+			printf("Message: %s\n", tweet.getMessage().c_str());
+			/* Print local timestamp */
+			char buffer [buffSize];
+			strftime(buffer, buffSize, "%I:%M%p.\n\n", localtime(&(tweet.getRawTimeStamp())));
+			puts(buffer);
+		}
 	}
 }
 
 /**
   * @param userName: The User this User wishes to block
-  * @effects Removes userName from unblockedUsers list and adds to blockedUsers list
-  * @modifies unblockedUser and blockedUsers private fields
+  * @effects Sets blockedStatus from this User's perspective to userName as true
+  * @modifies blockedStatus private field
   */
 void User::block(std::string userName) {
-	/* Temporary placeholder */
-	std::list<User> unblockedUsers = this->unblockedUsers;
-
-	/* Loop through blocked list to find userName */
-	for (std::list<User>::iterator itr = unblockedUsers.begin(); itr != unblockedUsers.end(); itr++) {
-		/* Get current user */
-		User user = *itr;
-		/* Found User in list */
-		if (user.getUserName() == userName) {
-			/* Remove User from unblocked list */
-			(this->unblockedUsers).remove(user);
-			/* Add User to blocked list */
-			(this->blockedUsers).push_back(user);
-			return;
-		}
-	}
+	(this->blockedStatus)[userName].first = true;
 }
 
 /**
   * @param userName: The User, this User wishes to unblock
-  * @effects Removes userName from blockedUsers list and adds to unblockedUsers list
-  * @modifies blockedUsers and unblockedUsers private fields
+  * @effects Sets blockedStatus from this User's perspective to userName as false
+  * @modifies blockedStatus private field
   */
 void User::unblock(std::string userName) {
-	/* Temporary placeholder */
-	std::list<User> blockedUsers = this->blockedUsers;
+	(this->blockedStatus)[userName].first = false;
+}
 
-	/* Loop through blocked list to find userName */
-	for (std::list<User>::iterator itr = blockedUsers.begin(); itr != blockedUsers.end(); itr++) {
-		/* Get current user */
-		User user = *itr;
-		/* Found User in list */
-		if (user.getUserName() == userName) {
-			/* Remove User from blocked list */
-			(this->blockedUsers).remove(user);
-			/* Add User to unblockedList */
-			(this->unblockedUsers).push_back(user);
-			return;
-		}
-	}
+/**
+  * @param userName: The User who does not want this User to view their tweets
+  * @effects Sets this User's knowledge about being blocked to true based on the userName
+  * @modifies blockedStatus private field
+  */
+void User::blockView(std::string userName) {
+	/* Iterator for blocked status */
+	(this->blockedStatus)[userName].second = true;
+}
+
+/**
+  * @param userName: The User who does want this User to view their tweets
+  * @effects Sets this User's knowledge about being blocked to false based on the userName
+  * @modifies blockedStatus private field
+  */
+void User::unblockView(std::string userName) {
+	(this->blockedStatus)[userName].second = false;
 }
 
 /**
@@ -218,11 +231,20 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 /**
   * @param matrixT: This User's matrix of direct and indirect knowledge
   * @param eR: The event that has occurred
-  * @param user: The recipient of the message
+  * @param userName: The recipient of the message
   * @effects Checks if this User knows that userName knows about event eR has occured
   * @returns true if this User knows that the userName knows about the event and false otherwise
   */
-bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User user) {
+bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, std::string userName) {
+	User user;
+	std::map<User, std::vector<int> >::iterator itr = matrixT.begin();
+
+	while (itr != matrixT.end()) {
+		user = itr->first;
+		if (user.getUserName() == userName) break;
+		itr++;
+	}
+
 	/* Get this User's indirect knowledge of the recipient user */
 	return matrixT[user][(eR.getNode()).second] >= eR.getcI();
 }
@@ -240,11 +262,43 @@ bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, User use
 void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk) {
 	/* Add tweet sent from sending User to this User's tweets*/
 	(this->tweets).push_back(tweet);
+	
 	/* Add all events sent from sending User to this User's Li */
 	(this->Li).insert((this->Li).end(), partialLog.begin(), partialLog.end());
 
-	/* Temporary placeholders */
+	/* Temporary placeholder */
+	std::string eventNodeName;
+	std::string eventRecipientName;
+
+	/* Update blocked status */
+	for (unsigned int i = 0; i < partialLog.size(); i++) {
+		/* Get current event and private fields associated */
+		Event currEvent = partialLog[i];
+		eventNodeName = currEvent.getNode().first;
+		eventRecipientName = currEvent.getRecipient().first;
+
+		/* Check if this User is the recipient of some event */
+		if (eventRecipientName == this->getUserName()) {
+			/* Switch on event type */
+			switch (currEvent.getType()) {
+				/* This User is blocked from viewing this node's tweets */
+				case 2:
+					 this->blockView(eventNodeName);
+					break;
+				/* This User is being unblocked from viewing this node's tweets */
+				case 3:
+					this->unblockView(eventNodeName);
+					break;
+			}
+		}
+	}
+
+	/* Iterators for matrices */
 	std::map<User, std::vector<int> > selfMatrix = this->matrixT;
+	std::map<User, std::vector<int> >::iterator itrI = selfMatrix.begin();
+	std::map<User, std::vector<int> >::iterator itrK = matrixTk.begin();
+
+	/* Temporary placeholders */
 	int amtOfUsers = selfMatrix.size();
 
 	/* Update direct knowledge */
@@ -252,10 +306,6 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::
 		/* Set Ti(i,j) = max of Ti(i, j) and Tk(k, j) */
 		((this->matrixT)[*this])[j] = std::max((selfMatrix[*this])[j], (matrixTk[sender])[j]);
 	}
-
-	/* Iterators for matrices */
-	std::map<User, std::vector<int> >::iterator itrI = selfMatrix.begin();
-	std::map<User, std::vector<int> >::iterator itrK = matrixTk.begin();
 
 	/* Update indirect knowledge */
 	while (itrI != selfMatrix.end()) {
@@ -273,4 +323,12 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::
 		itrI++;
 		itrK++;
 	}
+}
+
+/**
+  * @param userName: User to compare blocked status to
+  * @returns Relationship between this user and other User
+  */
+std::pair<bool, bool> User::getUserBlockedStatus(std::string userName) {
+	return this->getBlockedStatus()[userName];
 }
