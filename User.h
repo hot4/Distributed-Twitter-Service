@@ -175,11 +175,6 @@ private:
 	int index;
 	/* ADD timeZone after figuring out how to get current machine's time zone */
 	
-	/* A map of blocked status based on other Users */
-	/* Key: User -> userName */
-	/* Value: pair.first -> Represents if this User blocked the userName */
-	/*        pair.second-> Represents if this User is blocked by the userName */
-	std::map<std::string, std::pair<bool, bool> > blockedStatus;
 	/* A list of Tweets this User has recevied */
 	std::vector<Tweet> tweets;
 	
@@ -189,8 +184,17 @@ private:
 	/* Key: User */
 	/* Value: Pair to hold index of User in matrix and an ordered list of integers that represent the causaully ordered events at that specific User */
 	std::map<User, std::vector<int> > matrixT;
-	/* An ordered list of events */
+	/* Log: An ordered list of events */
 	std::vector<Event> Li;
+	/* Dictionary: A map of blocked status based on other Users */
+	/* Key: User -> userName */
+	/* Value: pair.first -> Represents if this User blocked the userName */
+	/*        pair.second-> Represents if this User is blocked by the userName */
+	std::map<std::string, std::pair<bool, bool> > blockedStatus;
+	/* Partial Log: A map of Events some User does not know about */
+	/* Key: User -> userName */
+	/* Value: The events the current userName does not know about */
+	std::map<std::string, std::vector<Event> > partialLog;
 
 };	
 #endif

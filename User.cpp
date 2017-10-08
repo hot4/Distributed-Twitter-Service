@@ -82,7 +82,7 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 	std::vector<Event> currLog = this->getLog();
 
 	/* Container for Events to send to recipient */
-	std::vector<Event> partialLog;
+	std::vector<Event> NP;
 
 	/* Iterator for blocked status for all Users */
 	std::map<std::string, std::pair<bool, bool> > blockedStatus = this->getBlockedStatus();
@@ -96,7 +96,7 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 				Event event = currLog[i];
 				/* Add event to partial Li */
 				if (this->hasRecv(matrixT, event, currUserName)) {
-					partialLog.push_back(event);
+					NP.push_back(event);
 				}
 			}
 		}
@@ -252,28 +252,28 @@ bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, std::str
 /**
   * @param sender: User who sent message
   * @param tweet: A tweet this User has received from the sending User
-  * @param partialLog: A list of events this User is not aware about from the sending User
+  * @param NP: A list of events this User is not aware about from the sending User
   * @param matrixTk: The sending User's matrix of direct and indirect knowledge
   * @effects Adds tweet to tweets
-  * @effects Adds all events in the partialLog into Li
+  * @effects Adds all events in the NP into Li
   * @effects Updates direct and indirect knowledge based on sending User's matrix
   * @modifies tweets, Li, matrixT
   */
-void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk) {
+void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User, std::vector<int> > matrixTk) {
 	/* Add tweet sent from sending User to this User's tweets*/
 	(this->tweets).push_back(tweet);
 	
 	/* Add all events sent from sending User to this User's Li */
-	(this->Li).insert((this->Li).end(), partialLog.begin(), partialLog.end());
+	(this->Li).insert((this->Li).end(), NP.begin(), NP.end());
 
 	/* Temporary placeholder */
 	std::string eventNodeName;
 	std::string eventRecipientName;
 
 	/* Update blocked status */
-	for (unsigned int i = 0; i < partialLog.size(); i++) {
+	for (unsigned int i = 0; i < NP.size(); i++) {
 		/* Get current event and private fields associated */
-		Event currEvent = partialLog[i];
+		Event currEvent = NP[i];
 		eventNodeName = currEvent.getNode().first;
 		eventRecipientName = currEvent.getRecipient().first;
 
