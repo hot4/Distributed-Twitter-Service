@@ -236,6 +236,12 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 	(this->Li).push_back(event);
 
 	/* Add event to all partialLogs for Users */
+	std::map<std::string, std::vector<Event> > partialLog = this->getPartialLog();
+	std::map<std::string, std::vector<Event> >::iterator itr = partialLog.begin();
+	while (itr != partialLog.end()) {
+		(this->partialLog)[itr->first].push_back(event);
+		itr++;
+	}
 }
 
 /**
