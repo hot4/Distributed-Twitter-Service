@@ -44,21 +44,22 @@ bool User::operator< (const User &u) const {
   * @modifies blockedStatus and matrixT private fields
   */
 void User::follow(std::vector<User> users) {
-	std::pair<bool, bool> status = std::make_pair(false, false);
+	/* Current User has no knowledge or triggered any events. Therefore, entire matrix should be initialized to 0 for the NxN matrix */
+	std::vector<int> knowledge(users.size(), 0);
+	/* No events has occurred. Therefore, no current User should have any missing knowledge about some Event that has occurred */
+	std::vector<Event> missingKnowledge(users.size());
 
 	for (unsigned int i = 0; i < users.size(); i++) {
 		/* Get current user */
 		User user = users[i];
-		std::string currUserName = user.getUserName();
 
-		/* Initialize relationship represent this User follows and is not blocked by current User */
-		std::pair<std::string, std::pair<bool, bool> > unblocked = std::make_pair(currUserName, status);
+		/* Insert relationship into dictionary to repsent that either direction, this User to other User or other User to this User, represents an unblocked relationship */
+		(this->blockedStatus).insert(std::pair<std::string, std::pair<bool, bool> >(user.getUserName(), std::pair<bool, bool>(false, false)));
 
-		/* Insert relationship into dictionary */
-		(this->blockedStatus).insert(unblocked);
+		/* Insert empty list of Events that current User does not know about */
+		(this->partialLog).insert(std::pair<std::string, std::vector<Event> >(user.getUserName(), missingKnowledge));
 
 		/* Insert knowledge of current User into matrixT */
-		std::vector<int> knowledge(users.size(), 0);
 		this->addToMatrixT(user, knowledge);
 	}
 }
