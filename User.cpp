@@ -47,7 +47,8 @@ void User::follow(std::vector<User> users) {
 	/* Current User has no knowledge or triggered any events. Therefore, entire matrix should be initialized to 0 for the NxN matrix */
 	std::vector<int> knowledge(users.size(), 0);
 	/* No events has occurred. Therefore, no current User should have any missing knowledge about some Event that has occurred */
-	std::list<Event> partialLog(users.size());
+	/* Ignored parialLog for self */
+	std::list<Event> partialLog(users.size()-1);
 
 	for (unsigned int i = 0; i < users.size(); i++) {
 		/* Get current user */
@@ -57,7 +58,9 @@ void User::follow(std::vector<User> users) {
 		(this->blockedStatus).insert(std::pair<std::string, std::pair<bool, bool> >(user.getUserName(), std::pair<bool, bool>(false, false)));
 
 		/* Insert empty list of Events that current User does not know about */
-		(this->partialLog).insert(std::pair<std::string, std::list<Event> >(user.getUserName(), partialLog));
+		if (this->getUserName() != user.getUserName()) {
+			(this->partialLog).insert(std::pair<std::string, std::list<Event> >(user.getUserName(), partialLog));
+		}
 
 		/* Insert knowledge of current User into matrixT */
 		this->addToMatrixT(user, knowledge);
@@ -83,7 +86,7 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 	/* Add tweet to tweets */
 	(this->tweets).push_back(tweet);
 
-	/* Temporary placeholder */
+	/* Temporary place holder */
 	std::string currUserName;
 	std::map<std::string, std::list<Event> > partialLog = this->getPartialLog();
 
@@ -213,7 +216,7 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 	/* Get value based on key and then access index to increment this User's Ti(i,i) */
 	((this->matrixT)[*this])[this->getIndex()]++;
 
-	/* Temporary placeholders */
+	/* Temporary place holders */
 	Event event;
 	Tweet tweet;
 	std::string userName = this->getUserName();
@@ -289,7 +292,7 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 	/* Add all events sent from sending User to this User's Li */
 	(this->Li).insert((this->Li).end(), NP.begin(), NP.end());
 
-	/* Temporary placeholder */
+	/* Temporary place holder */
 	std::string eventNodeName;
 	std::string eventRecipientName;
 
@@ -321,7 +324,7 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 	std::map<User, std::vector<int> >::iterator itrI = selfMatrix.begin();
 	std::map<User, std::vector<int> >::iterator itrK = matrixTk.begin();
 
-	/* Temporary placeholders */
+	/* Temporary place holders */
 	int amtOfUsers = selfMatrix.size();
 
 	/* Update direct knowledge */
@@ -345,6 +348,18 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 
 		itrI++;
 		itrK++;
+	}
+
+	/* Update partialLog based on Events sending User had send this User */
+	std::list<Event> missingKnowledge = this->getPartialLog()[sender.getUserName()];
+	/* Iterate through missing knowledge of sender and remove any Events that sender is already aware about */
+	for (unsigned int i = 0; i < NP.size(); i++) {
+		/* Get current event */
+		Event event = NP[i];
+		std::list<Event>::iterator itr = missingKnowledge.begin();
+		while (itr != missingKnowledge.end()) {
+			// if (event.get)
+		}
 	}
 }
 

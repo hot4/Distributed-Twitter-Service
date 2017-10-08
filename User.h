@@ -137,17 +137,6 @@ public:
 	int getIndex() const {return index;}
 
 	/**
-	  * @returns Private field blockedStatus
-	  */
-	std::map<std::string, std::pair<bool, bool> > getBlockedStatus() const {return blockedStatus;}
-
-	/**
-	  * @param userName: User to compare blocked status to
-	  * @returns Relationship between this user and other User
-	  */
-	std::pair<bool, bool> getUserBlockedStatus(std::string userName);
-
-	/**
 	  * @returns Private field tweets
 	  */
 	std::vector<Tweet> getTweets() const {return tweets;}
@@ -167,13 +156,28 @@ public:
 	  */
 	std::vector<Event> getLog() const {return Li;}
 
+	/**
+	  * @returns Private field blockedStatus
+	  */
+	std::map<std::string, std::pair<bool, bool> > getBlockedStatus() const {return blockedStatus;}
+
+	/**
+	  * @returns Private field partialLog
+	  */
+	std::map<std::string, std::list<Event> > getPartialLog() const {return partialLog;}
+
+	/**
+	  * @param userName: User to compare blocked status to
+	  * @returns Relationship between this user and other User
+	  */
+	std::pair<bool, bool> getUserBlockedStatus(std::string userName);
+
 	/* Private Fields */
 private: 
 	/* The name of the User */
 	std::string userName;
 	/* Associated with index within matrix*/
 	int index;
-	/* ADD timeZone after figuring out how to get current machine's time zone */
 	
 	/* A list of Tweets this User has recevied */
 	std::vector<Tweet> tweets;
@@ -194,7 +198,7 @@ private:
 	/* Partial Log: A map of Events some User does not know about */
 	/* Key: User -> userName */
 	/* Value: The events the current userName does not know about */
-	std::map<std::string, std::vector<Event> > partialLog;
+	std::map<std::string, std::list<Event> > partialLog;
 
 };	
 #endif
