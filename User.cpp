@@ -47,7 +47,7 @@ void User::follow(std::vector<User> users) {
 	/* Current User has no knowledge or triggered any events. Therefore, entire matrix should be initialized to 0 for the NxN matrix */
 	std::vector<int> knowledge(users.size(), 0);
 	/* No events has occurred. Therefore, no current User should have any missing knowledge about some Event that has occurred */
-	std::vector<Event> missingKnowledge(users.size());
+	std::list<Event> partialLog(users.size());
 
 	for (unsigned int i = 0; i < users.size(); i++) {
 		/* Get current user */
@@ -57,7 +57,7 @@ void User::follow(std::vector<User> users) {
 		(this->blockedStatus).insert(std::pair<std::string, std::pair<bool, bool> >(user.getUserName(), std::pair<bool, bool>(false, false)));
 
 		/* Insert empty list of Events that current User does not know about */
-		(this->partialLog).insert(std::pair<std::string, std::vector<Event> >(user.getUserName(), missingKnowledge));
+		(this->partialLog).insert(std::pair<std::string, std::list<Event> >(user.getUserName(), partialLog));
 
 		/* Insert knowledge of current User into matrixT */
 		this->addToMatrixT(user, knowledge);
@@ -85,28 +85,35 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 
 	/* Temporary placeholder */
 	std::string currUserName;
-	std::vector<Event> currLog = this->getLog();
-
-	/* Container for Events to send to recipient */
-	std::vector<Event> NP;
+	std::map<std::string, std::list<Event> > partialLog = this->getPartialLog();
 
 	/* Iterator for blocked status for all Users */
 	std::map<std::string, std::pair<bool, bool> > blockedStatus = this->getBlockedStatus();
 	std::map<std::string, std::pair<bool, bool> >::iterator itr = blockedStatus.begin();
 
 	while (itr != blockedStatus.end()) {
+		/* Container for Events to send to recipient */
+		std::vector<Event> NP;
+
 		currUserName = itr->first;
 		/* Given this is not this User and the current User is not blocked */
 		if (((this->getUserName()) != currUserName) && !(this->getUserBlockedStatus(currUserName)).first) {
-			for (unsigned int i = 0; i < currLog.size(); i++) {
-				Event event = currLog[i];
-				/* Add event to partial Li */
+			std::list<Event> missingKnowledge = partialLog[currUserName];
+			std::list<Event>::iterator itr = missingKnowledge.begin();
+			while (itr != missingKnowledge.end()) {
+				/* Get current event that recipient supposedly does not know about this Event */
+				Event event = *itr;
+				/* Verify that recipient does not know about this Event */
 				if (this->hasRecv(matrixT, event, currUserName)) {
+					/* Add event to container of Events recipient should receive */
 					NP.push_back(event);
+					itr++;
+				} else {
+					/* Delete event for recipient from partialLog because recipient already knows about event */
+					(this->partialLog)[currUserName].erase(itr);
 				}
 			}
 		}
-
 		/* TODO: Broadcast message to current follower */
 		itr++;
 	}
@@ -236,8 +243,8 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 	(this->Li).push_back(event);
 
 	/* Add event to all partialLogs for Users */
-	std::map<std::string, std::vector<Event> > partialLog = this->getPartialLog();
-	std::map<std::string, std::vector<Event> >::iterator itr = partialLog.begin();
+	std::map<std::string, std::list<Event> > partialLog = this->getPartialLog();
+	std::map<std::string, std::list<Event> >::iterator itr = partialLog.begin();
 	while (itr != partialLog.end()) {
 		(this->partialLog)[itr->first].push_back(event);
 		itr++;
