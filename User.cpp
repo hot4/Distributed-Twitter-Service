@@ -44,13 +44,18 @@ bool User::operator< (const User &u) const {
   * @modifies blockedStatus and matrixT private fields
   */
 void User::follow(std::vector<User> users) {
+	std::pair<bool, bool> status = std::make_pair(false, false);
+
 	for (unsigned int i = 0; i < users.size(); i++) {
 		/* Get current user */
 		User user = users[i];
+		std::string currUserName = user.getUserName();
 
 		/* Initialize relationship represent this User follows and is not blocked by current User */
-		(this->blockedStatus)[user.getUserName()].first = false;
-		(this->blockedStatus)[user.getUserName()].second = false;
+		std::pair<std::string, std::pair<bool, bool> > unblocked = std::make_pair(currUserName, status);
+
+		/* Insert relationship into dictionary */
+		(this->blockedStatus).insert(unblocked);
 
 		/* Insert knowledge of current User into matrixT */
 		std::vector<int> knowledge(users.size(), 0);
@@ -146,6 +151,7 @@ void User::view() {
   * @modifies blockedStatus private field
   */
 void User::block(std::string userName) {
+	/* Update dictionary for this User to some other User's relationshp */
 	(this->blockedStatus)[userName].first = true;
 }
 
@@ -155,6 +161,7 @@ void User::block(std::string userName) {
   * @modifies blockedStatus private field
   */
 void User::unblock(std::string userName) {
+	/* Update dictionary for this User to some other User's relationship */
 	(this->blockedStatus)[userName].first = false;
 }
 
@@ -164,7 +171,7 @@ void User::unblock(std::string userName) {
   * @modifies blockedStatus private field
   */
 void User::blockView(std::string userName) {
-	/* Iterator for blocked status */
+	/* Update dictionary for some other User and this User's relationship */
 	(this->blockedStatus)[userName].second = true;
 }
 
@@ -226,6 +233,8 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 	
 	/* Add event to Li */
 	(this->Li).push_back(event);
+
+	/* Add event to all partialLogs for Users */
 }
 
 /**
