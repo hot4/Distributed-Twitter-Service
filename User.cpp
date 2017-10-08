@@ -348,31 +348,39 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 		itrK++;
 	}
 
-	/* Update partialLog */
-	// std::map<std::string, std::list<Event> > partialLog = this->getPartialLog;
+	/* Temporary place holder */
+	std::map<User, std::vector<int> > matrixT = this->getMatrixT();
 
-	// /* Update partialLog based on Events sending User had send this User */
-	// /* This User's partialLog for sender */
-	// std::list<Event> missingKnowledge = this->getPartialLog()[sender.getUserName()];
-	// /* Iterate through missing knowledge of sender and remove any Events that sender is already aware about */
-	// for (unsigned int i = 0; i < NP.size(); i++) {
-	// 	/* Get current event */
-	// 	Event event = NP[i];
-	// 	/* Iterator for missingKnowledge */
-	// 	std::list<Event>::iterator itr = missingKnowledge.begin();
-	// 	 Loop through this User's partialLog for sender and see if any Events sender provided to this User can be removed from partialLog 
-	// 	while (itr != missingKnowledge.end()) {
-	// 		/* Check if sender already knows about an event in the partialLog */
-	// 		if (event == *itr) {
-	// 			/* Delete from partialLog and break because only one event can be equal another */
-	// 			(this->partialLog)[sender.getUserName()].erase(itr);
-	// 			break;
-	// 		} else {
-	// 			/* Increment iterator to check the rest of the partialLog */
-	// 			itr++;
-	// 		}
-	// 	}
-	// }
+	/* partialLog iterator */
+	std::map<std::string, std::list<Event> >::iterator itrPL = this->partialLog.begin();
+
+	/* Update partialLog */
+	while (itrPL != this->partialLog.end()) {
+		/* Missing Knowledge iterator */
+		std::list<Event>::iterator itrMK = itrPL->second.begin();
+		/* Iterate through current User's missing knowledge */
+		for (unsigned int i = 0; i < NP.size(); i++) {
+			/* Check if current User has received the current Event from NP */
+			if (!this->hasRecv(matrixT, NP[i], itrPL->first)) {
+				/* Add current Event from NP to current User's partialLog container */
+				this->partialLog[itrPL->first].push_back(NP[i]);
+			} else {
+				/* Clean up partialLog for current User */
+				/* Iterator for partialLog for current User */
+				std::list<Event>::iterator itrMK = this->partialLog[itrPL->first].begin();
+				while (itrMK != this->partialLog[itrPL->first].end()) {
+					/* Check if current Evevnt in partialLog of current User is equal to current Event in NP */
+					if (*itrMK == NP[i]) {
+						/* Erase current Event from NP since current User already knows about the Event */
+						this->partialLog[itrPL->first].erase(itrMK);
+						break;
+					}
+					itrMK++;
+				}
+			}
+		}
+		itrPL++;
+	}
 }
 
 /**
