@@ -52,6 +52,20 @@ Event& Event::operator= (const Event &e) {
 }
 
 /**
+  * @param e: Event to compare values to
+  * @returns true if both events have the same private fields, false otherwise
+  */
+bool Event::operator== (const Event &e) {
+  return (this->getType() == e.getType()) && 
+         (this->getNode().first == e.getNode().first) && (this->getNode().second == e.getNode().second) &&
+         (this->isTweet() == e.isTweet()) && 
+         (this->getRecipient().first == e.getRecipient().first) && (this->getRecipient().second == e.getRecipient().second) &&
+         (this->getMessage() == e.getMessage()) && 
+         (this->getcI() == e.getcI()) && 
+         (this->getRawTimeStamp() == e.getRawTimeStamp());
+}
+
+/**
   * @param type: Integer repsentation of a particular type
   * @returns Translation of Integer to appropriate string value
   */

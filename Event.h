@@ -46,6 +46,12 @@ public:
 	Event& operator= (const Event &e);
 
 	/**
+      * @param e: Event to compare values to
+      * @returns true if both events have the same private fields, false otherwise
+	  */
+	bool operator== (const Event &e);
+
+	/**
 	  * @param type: Integer repsentation of a particular type
 	  * @returns Translation of Integer to appropriate string value
 	  */
