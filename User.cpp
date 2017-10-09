@@ -44,16 +44,25 @@ bool User::operator< (const User &u) const {
   * @modifies blockedStatus and matrixT private fields
   */
 void User::follow(std::vector<User> users) {
+	/* Current User has no knowledge or triggered any events. Therefore, entire matrix should be initialized to 0 for the NxN matrix */
+	std::vector<int> knowledge(users.size(), 0);
+	/* No events has occurred. Therefore, no current User should have any missing knowledge about some Event that has occurred */
+	/* Ignored parialLog for self */
+	std::list<Event> partialLog(users.size()-1);
+
 	for (unsigned int i = 0; i < users.size(); i++) {
 		/* Get current user */
 		User user = users[i];
 
-		/* Initialize relationship represent this User follows and is not blocked by current User */
-		(this->blockedStatus)[user.getUserName()].first = false;
-		(this->blockedStatus)[user.getUserName()].second = false;
+		/* Insert relationship into dictionary to repsent that either direction, this User to other User or other User to this User, represents an unblocked relationship */
+		(this->blockedStatus).insert(std::pair<std::string, std::pair<bool, bool> >(user.getUserName(), std::pair<bool, bool>(false, false)));
+
+		/* Insert empty list of Events that current User does not know about */
+		if (this->getUserName() != user.getUserName()) {
+			(this->partialLog).insert(std::pair<std::string, std::list<Event> >(user.getUserName(), partialLog));
+		}
 
 		/* Insert knowledge of current User into matrixT */
-		std::vector<int> knowledge(users.size(), 0);
 		this->addToMatrixT(user, knowledge);
 	}
 }
@@ -77,30 +86,35 @@ void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
 	/* Add tweet to tweets */
 	(this->tweets).push_back(tweet);
 
-	/* Temporary placeholder */
+	/* Temporary place holder */
 	std::string currUserName;
-	std::vector<Event> currLog = this->getLog();
-
-	/* Container for Events to send to recipient */
-	std::vector<Event> partialLog;
 
 	/* Iterator for blocked status for all Users */
 	std::map<std::string, std::pair<bool, bool> > blockedStatus = this->getBlockedStatus();
 	std::map<std::string, std::pair<bool, bool> >::iterator itr = blockedStatus.begin();
 
 	while (itr != blockedStatus.end()) {
+		/* Container for Events to send to recipient */
+		std::vector<Event> NP;
+
 		currUserName = itr->first;
 		/* Given this is not this User and the current User is not blocked */
 		if (((this->getUserName()) != currUserName) && !(this->getUserBlockedStatus(currUserName)).first) {
-			for (unsigned int i = 0; i < currLog.size(); i++) {
-				Event event = currLog[i];
-				/* Add event to partial Li */
-				if (this->hasRecv(matrixT, event, currUserName)) {
-					partialLog.push_back(event);
+			std::list<Event>::iterator itr = this->partialLog[currUserName].begin();
+			while (itr != this->partialLog[currUserName].end()) {
+				/* Get current event that recipient supposedly does not know about this Event */
+				Event event = *itr;
+				/* Verify that recipient does not know about this Event */
+				if (!(this->hasRecv(matrixT, event, currUserName))) {
+					/* Add event to container of Events recipient should receive */
+					NP.push_back(event);
+					itr++;
+				} else {
+					/* Delete event for recipient from partialLog because recipient already knows about event */
+					(this->partialLog)[currUserName].erase(itr);
 				}
 			}
 		}
-
 		/* TODO: Broadcast message to current follower */
 		itr++;
 	}
@@ -146,6 +160,7 @@ void User::view() {
   * @modifies blockedStatus private field
   */
 void User::block(std::string userName) {
+	/* Update dictionary for this User to some other User's relationshp */
 	(this->blockedStatus)[userName].first = true;
 }
 
@@ -155,6 +170,7 @@ void User::block(std::string userName) {
   * @modifies blockedStatus private field
   */
 void User::unblock(std::string userName) {
+	/* Update dictionary for this User to some other User's relationship */
 	(this->blockedStatus)[userName].first = false;
 }
 
@@ -164,7 +180,7 @@ void User::unblock(std::string userName) {
   * @modifies blockedStatus private field
   */
 void User::blockView(std::string userName) {
-	/* Iterator for blocked status */
+	/* Update dictionary for some other User and this User's relationship */
 	(this->blockedStatus)[userName].second = true;
 }
 
@@ -198,7 +214,7 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 	/* Get value based on key and then access index to increment this User's Ti(i,i) */
 	((this->matrixT)[*this])[this->getIndex()]++;
 
-	/* Temporary placeholders */
+	/* Temporary place holders */
 	Event event;
 	Tweet tweet;
 	std::string userName = this->getUserName();
@@ -226,6 +242,14 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 	
 	/* Add event to Li */
 	(this->Li).push_back(event);
+
+	/* Add event to all partialLogs for Users */
+	std::map<std::string, std::list<Event> > partialLog = this->getPartialLog();
+	std::map<std::string, std::list<Event> >::iterator itr = partialLog.begin();
+	while (itr != partialLog.end()) {
+		(this->partialLog)[itr->first].push_back(event);
+		itr++;
+	}
 }
 
 /**
@@ -252,28 +276,28 @@ bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, std::str
 /**
   * @param sender: User who sent message
   * @param tweet: A tweet this User has received from the sending User
-  * @param partialLog: A list of events this User is not aware about from the sending User
+  * @param NP: A list of events this User is not aware about from the sending User
   * @param matrixTk: The sending User's matrix of direct and indirect knowledge
   * @effects Adds tweet to tweets
-  * @effects Adds all events in the partialLog into Li
+  * @effects Adds all events in the NP into Li
   * @effects Updates direct and indirect knowledge based on sending User's matrix
   * @modifies tweets, Li, matrixT
   */
-void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk) {
+void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User, std::vector<int> > matrixTk) {
 	/* Add tweet sent from sending User to this User's tweets*/
 	(this->tweets).push_back(tweet);
 	
 	/* Add all events sent from sending User to this User's Li */
-	(this->Li).insert((this->Li).end(), partialLog.begin(), partialLog.end());
+	(this->Li).insert((this->Li).end(), NP.begin(), NP.end());
 
-	/* Temporary placeholder */
+	/* Temporary place holder */
 	std::string eventNodeName;
 	std::string eventRecipientName;
 
 	/* Update blocked status */
-	for (unsigned int i = 0; i < partialLog.size(); i++) {
+	for (unsigned int i = 0; i < NP.size(); i++) {
 		/* Get current event and private fields associated */
-		Event currEvent = partialLog[i];
+		Event currEvent = NP[i];
 		eventNodeName = currEvent.getNode().first;
 		eventRecipientName = currEvent.getRecipient().first;
 
@@ -298,7 +322,7 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::
 	std::map<User, std::vector<int> >::iterator itrI = selfMatrix.begin();
 	std::map<User, std::vector<int> >::iterator itrK = matrixTk.begin();
 
-	/* Temporary placeholders */
+	/* Temporary place holders */
 	int amtOfUsers = selfMatrix.size();
 
 	/* Update direct knowledge */
@@ -322,6 +346,40 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::
 
 		itrI++;
 		itrK++;
+	}
+
+	/* Temporary place holder */
+	std::map<User, std::vector<int> > matrixT = this->getMatrixT();
+
+	/* partialLog iterator */
+	std::map<std::string, std::list<Event> >::iterator itrPL = this->partialLog.begin();
+
+	/* Update partialLog */
+	while (itrPL != this->partialLog.end()) {
+		/* Missing Knowledge iterator */
+		std::list<Event>::iterator itrMK = itrPL->second.begin();
+		/* Iterate through current User's missing knowledge */
+		for (unsigned int i = 0; i < NP.size(); i++) {
+			/* Check if current User has received the current Event from NP */
+			if (!this->hasRecv(matrixT, NP[i], itrPL->first)) {
+				/* Add current Event from NP to current User's partialLog container */
+				this->partialLog[itrPL->first].push_back(NP[i]);
+			} else {
+				/* Clean up partialLog for current User */
+				/* Iterator for partialLog for current User */
+				std::list<Event>::iterator itrMK = this->partialLog[itrPL->first].begin();
+				while (itrMK != this->partialLog[itrPL->first].end()) {
+					/* Check if current Evevnt in partialLog of current User is equal to current Event in NP */
+					if (*itrMK == NP[i]) {
+						/* Erase current Event from NP since current User already knows about the Event */
+						this->partialLog[itrPL->first].erase(itrMK);
+						break;
+					}
+					itrMK++;
+				}
+			}
+		}
+		itrPL++;
 	}
 }
 
