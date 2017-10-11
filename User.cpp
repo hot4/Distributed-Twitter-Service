@@ -16,14 +16,14 @@ struct TweetComparator {
     }
 };
 
-// struct EventComparator {
-//     Comparator();
-//     bool operator () (const Event &event1,
-//                       const Event &event2) 
-//     {
-//         return ( event1.getRawTimeStamp() < event2.getRawTimeStamp() );
-//     }
-// };
+struct EventComparator {
+    Comparator();
+    bool operator () (const Event &event1,
+                      const Event &event2) 
+    {
+        return ( event1.getRawTimeStamp() < event2.getRawTimeStamp() );
+    }
+};
 
 /**
   * @effects Creates a default User object
@@ -320,8 +320,8 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 	/* Sort tweets */
 	std::sort((this->tweets).begin(), (this->tweets).end(), TweetComparator());
 
-	// /* Sort Li */
-	// std::sort((this->Li).begin(), (this->Li).end(), EventComparator());
+	/* Sort Li */
+	std::sort((this->Li).begin(), (this->Li).end(), EventComparator());
 
 	/* Temporary place holder */
 	std::string eventNodeName;
