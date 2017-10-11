@@ -7,6 +7,24 @@
 
 #include "User.h"
 
+struct TweetComparator {
+    Comparator();
+    bool operator () (const Tweet &tweet1,
+                      const Tweet &tweet2) 
+    {
+        return ( tweet1.getRawTimeStamp() < tweet2.getRawTimeStamp() );
+    }
+};
+
+struct EventComparator {
+    Comparator();
+    bool operator () (const Event &event1,
+                      const Event &event2) 
+    {
+        return ( event1.getRawTimeStamp() < event2.getRawTimeStamp() );
+    }
+};
+
 /**
   * @effects Creates a default User object
   * @returns A new User object
@@ -287,8 +305,23 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 	/* Add tweet sent from sending User to this User's tweets*/
 	(this->tweets).push_back(tweet);
 	
-	/* Add all events sent from sending User to this User's Li */
-	(this->Li).insert((this->Li).end(), NP.begin(), NP.end());
+	/* Add all events sent from sending User to this User's Li and if event is tweet add to tweets */
+	for (unsigned int i = 0; i < NP.size(); i++) {
+		Event event = NP[i];
+		/* Check if Event is Tweet */
+		if (event.isTweet()) {
+			/* Convert Event to Tweet object and add to tweets */
+			Tweet tweet = Tweet(event.getNode().first, event.getMessage(), event.getRawTimeStamp());
+			(this->tweets.push_back(tweet));
+		}
+		(this->Li).push_back(event);
+	}
+
+	/* Sort tweets */
+	std::sort((this->tweets).begin(), (this->tweets).end(), TweetComparator());
+
+	/* Sort Li */
+	std::sort((this->Li).begin(), (this->Li).end(), EventComparator());
 
 	/* Temporary place holder */
 	std::string eventNodeName;
