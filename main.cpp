@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -20,20 +21,71 @@ std::string DIRECTORY = "./storage/";
  * @effects creates directory labeled "storage" if none exists
  */
 void createDirectory() {
-	struct stat st = {0};
-	/* Check if director already exists */
-  	if (stat(DIRECTORY.c_str(), &st) == -1) {
-  		mkdir(DIRECTORY.c_str(), 0700);
-  	}
+    struct stat st = {0};
+    /* Check if director already exists */
+    if (stat(DIRECTORY.c_str(), &st) == -1) {
+        mkdir(DIRECTORY.c_str(), 0700);
+    }
+}
+
+/**
+  * @effects Sends input from console to specified port
+  * @returns true if no library functions failed, false otherwise
+  */
+bool tweet() {
+    /* Create TCP client socket (endpoint) */
+    int sd = socket(PF_INET, SOCK_STREAM, 0);
+    if (sd < 0) {
+        perror("socket() failed");
+        return false;
+    }
+
+    /* Get localhost information */
+    struct hostent * hp = gethostbyname("localhost");
+    if (hp == NULL) {
+        fprintf(stderr, "ERROR: gethostbyname() failed\n");
+        return false;
+    }
+
+    /* Establish connection to server at specified port */
+    std::string outPort;
+    printf("Input Port to Send Message: ");
+    fflush(stdout);
+    getline(std::cin, outPort, '\n');
+
+    struct sockaddr_in outGoing;
+    outGoing.sin_family = AF_INET;
+    memcpy((void *)&outGoing.sin_addr, (void*)hp->h_addr, hp->h_length);
+    outGoing.sin_port = htons(atoi(outPort.c_str()));
+    if (connect(sd, (struct sockaddr *)&outGoing, sizeof(outGoing)) == -1) {
+        perror("connect() failed");
+        return false;
+    }
+
+    /* Get message to be sent to outgoing port */
+    std::string message;
+    printf("Input Tweet Message: ");
+    fflush(stdout);
+    getline(std::cin, message, '\n');
+
+    char messageArr[BUFFER_SIZE];
+    strcpy(messageArr, message.c_str());
+    int n = write(sd, messageArr, sizeof(messageArr));
+    int length = sizeof(messageArr);
+    if (n < length) {
+        perror("write() failed");
+        return false;
+    }
+    close(sd);
+    return true;
 }
 
 int main(int argc, char* argv[])
 {
-	int rc, on, nfds = 1;
-	int currSize = 0, len = 0;
-	int sdTCP = -1, newSD = -1;
+    int rc, on, nfds = 1;
+    int currSize = 0, len = 0;
+    int port = atoi(argv[1]), sdTCP = -1, newSD = -1;
     bool endServer = false, closeConn = false, compressArr = false;
-    char buffer[BUFFER_SIZE];
 
     printf("Started server\n");
     fflush(stdout);
@@ -48,9 +100,9 @@ int main(int argc, char* argv[])
     /* Make socket reusable */
     rc = setsockopt(sdTCP, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
     if (rc == -1) {
-    	perror("ERROR: setsockopt() failed");
-    	close(sdTCP);
-    	return EXIT_FAILURE;
+        perror("ERROR: setsockopt() failed");
+        close(sdTCP);
+        return EXIT_FAILURE;
     }
 
     /* Bind TCP socket */
@@ -58,20 +110,20 @@ int main(int argc, char* argv[])
     memset(&serverTCP, 0, sizeof(serverTCP));
     serverTCP.sin_family = AF_INET;
     serverTCP.sin_addr.s_addr = htonl(INADDR_ANY);
-    serverTCP.sin_port = htons(SERVER_PORT);
+    serverTCP.sin_port = htons(port);
     rc = bind (sdTCP, (struct sockaddr*) &serverTCP, sizeof(serverTCP));
     if (rc == -1) {
-    	perror("ERROR: bind() failed");
-    	close(sdTCP);
-    	exit(EXIT_FAILURE);
+        perror("ERROR: bind() failed");
+        close(sdTCP);
+        exit(EXIT_FAILURE);
     }
 
     /* Set the listen back log */
     rc = listen(sdTCP, 32);
     if (rc == -1) {
-    	perror("ERROR: listen() failed");
-    	close(sdTCP);
-    	exit(EXIT_FAILURE);
+        perror("ERROR: listen() failed");
+        close(sdTCP);
+        exit(EXIT_FAILURE);
     }
 
     /* Initialize Server Poll FD */
@@ -92,55 +144,49 @@ int main(int argc, char* argv[])
     createDirectory();
 
     do {
-    	/* Block for 3 seconds to see if there are any incoming messages */
-    	printf("Waiting on recveiving messages...\n");
-    	rc = poll(fds, nfds, timeout);
+        /* Block for 3 seconds to see if there are any incoming messages */
+        printf("Waiting on recveiving messages...\n");
+        rc = poll(fds, nfds, timeout);
 
-    	if (rc == -1) {
-    		/* ERROR */
-    		perror("ERROR: server poll() failed");
-    		break;
-    	} else if (rc == 0) {
-    		/* Block for 3 seconds to see if there are inputs from the console */
-    		printf("Waiting on input from console...\n");
-    		rc = poll(&cfd, nfds, timeout); 
+        if (rc == -1) {
+            /* ERROR */
+            perror("ERROR: server poll() failed");
+            break;
+        } else if (rc == 0) {
+            /* Block for 3 seconds to see if there are inputs from the console */
+            printf("Waiting on input from console...\n");
+            rc = poll(&cfd, nfds, timeout); 
 
-    		if (rc == -1) {
-    			/* ERROR */
-    			perror("EEROR: console poll() failed");
-    			break;
-    		} else if (rc == 0) {
-    			/* Loop back to server poll() since no console commands were provided */
-    			continue;
-    	    } else {
-	    		/* Get command from console */
-			    std::string cmd;
-			    getline(std::cin, cmd, '\n');
-			    
-			    /* Basic print to terminal to verify proper reading from console */
-			    std::cout << cmd << std::endl;
-			    fflush(stdout);
+            if (rc == -1) {
+                /* ERROR */
+                perror("EEROR: console poll() failed");
+                break;
+            } else if (rc == 0) {
+                /* Loop back to server poll() since no console commands were provided */
+                continue;
+            } else {
+                /* Get command from console */
+                std::string cmd;
+                getline(std::cin, cmd, '\n');
 
-			    /* Checks which command was prompted */
-			    if (cmd == "Tweet") {
-			    	printf("Tweet Success\n");
-			    	fflush(stdout);
-			    } else if (cmd == "Block") {
-			    	printf("Block Success\n");
-			    	fflush(stdout);
-			    } else if (cmd == "Unblock") {
-			    	printf("Unblock Success\n");
-			    	fflush(stdout);
-			    } else {
-			    	printf("Incorrect command provided. Use {Tweet, Block, Unblock}\n");
-			    	fflush(stdout);
-			    }
-			}
-    	} /* End of poll errors or command console */
+                /* Checks which command was prompted */
+                if (cmd == "Tweet") {
+                    if (!tweet()) return EXIT_FAILURE;
+                } else if (cmd == "Block") {
+                    printf("Block Success\n");
+                    fflush(stdout);
+                } else if (cmd == "Unblock") {
+                    printf("Unblock Success\n");
+                    fflush(stdout);
+                } else {
+                    printf("Incorrect command provided. Use {Tweet, Block, Unblock}\n");
+                    fflush(stdout);
+                }
+            }
+        } /* End of poll errors or command console */
 
         /* Descriptor(s) are readable. Filter through all */
         currSize = nfds;
-
         /* Iterate through FDs to find those with a return value of POLLIN */
         /* Determine if descriptor is listening or active connection */
         for (int i = 0; i < currSize; i++) {
@@ -157,29 +203,28 @@ int main(int argc, char* argv[])
             if (fds[i].fd == sdTCP) {
                 printf("TCP listen socket is readable\n");
 
-                /* Accept all incoming connections before looping back to listen for more incoming connections or console commands */
-                do {
-                    newSD = accept(sdTCP, NULL, NULL);
-                    if (newSD == -1) {
-                        perror("ERROR: accept() failed");
-                        endServer = true;
-                        break;
-                    }
+                /* Accept incoming connection before looping back to listen for more incoming connections or console commands */
+                newSD = accept(sdTCP, NULL, NULL);
+                if (newSD == -1) {
+                    perror("ERROR: accept() failed");
+                    endServer = true;
+                    break;
+                }
 
-                    /* Add incoming connection to poll fd struct */
-                    printf("New incoming connection - %d\n", newSD);
-                    fflush(stdout);
-                    fds[nfds].fd = newSD;
-                    fds[nfds].events = POLLIN;
-                    nfds++;
-                } while (newSD != -1);
+                /* Add incoming connection to poll fd struct */
+                printf("New incoming connection - %d\n", newSD);
+                fflush(stdout);
+                fds[nfds].fd = newSD;
+                fds[nfds].events = POLLIN;
+                nfds++;
             } else {
                 /* Not a listening socket, therefore, existing connection must be readable */
                 printf("Descriptor %d is readable\n", fds[i].fd);
                 closeConn = false;
                 /* Retrieve incoming data on current socket before continuing */
                 do {
-                    rc = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+                    char recvBuffer[BUFFER_SIZE];
+                    rc = recv(fds[i].fd, recvBuffer, sizeof(recvBuffer), 0);
                     if (rc == -1) {
                         perror("ERROR: recv() failed");
                         closeConn = true;
@@ -190,16 +235,8 @@ int main(int argc, char* argv[])
                         closeConn = true;
                         break;
                     } else {
-                        len = rc;
-                        printf("%d bytes received\n", len);
-
-                        /* BASIC echo data back to the client */
-                        rc = send(fds[i].fd, buffer, len, 0);
-                        if (rc == -1) {
-                            perror("ERROR: send() failed");
-                            closeConn = true;
-                            break;
-                        }
+                        /* BASIC Output to verify correct message was received */
+                        printf("Tweet Message: %s\n", recvBuffer);   
                     }
                 } while (true);
 
@@ -230,12 +267,12 @@ int main(int argc, char* argv[])
         }
 
     } while (!endServer);
-
+    
     /* Close file descriptors */
     for (int i = 0; i < nfds; i++) {
-    	if (fds[i].fd >= 0) {
-    		close(fds[i].fd);
-    	}
+        if (fds[i].fd >= 0) {
+            close(fds[i].fd);
+        }
     }
 
     return EXIT_SUCCESS;
