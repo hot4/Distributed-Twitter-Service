@@ -6,12 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
-#include <netdb.h>
+#include <netdb.h> /* gethostbyname */
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#define SERVER_PORT 12345
 #define BUFFER_SIZE 1024
 
 /* Global directory name */
@@ -68,6 +67,7 @@ bool tweet() {
     fflush(stdout);
     getline(std::cin, message, '\n');
 
+    /* Send message */
     char messageArr[BUFFER_SIZE];
     strcpy(messageArr, message.c_str());
     int n = write(sd, messageArr, sizeof(messageArr));
@@ -82,6 +82,12 @@ bool tweet() {
 
 int main(int argc, char* argv[])
 {
+    if (argc != 2) {
+        printf("ERROR: Invalid amount of command line arguments. Include port number.\n");
+        fflush(stdout);
+        exit(EXIT_SUCCESS);
+    }
+
     int rc, on, nfds = 1;
     int currSize = 0, len = 0;
     int port = atoi(argv[1]), sdTCP = -1, newSD = -1;
