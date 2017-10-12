@@ -30,8 +30,10 @@ void createDirectory() {
 int main(int argc, char* argv[])
 {
 	int rc, on, nfds = 1;
-	// int currSize = 0;
-	int sdTCP = -1;
+	int currSize = 0, len = 0;
+	int sdTCP = -1, newSD = -1;
+    bool endServer = false, closeConn = false, compressArr = false;
+    char buffer[BUFFER_SIZE];
 
     printf("Started server\n");
     fflush(stdout);
@@ -89,7 +91,7 @@ int main(int argc, char* argv[])
 
     createDirectory();
 
-    while (1) {
+    do {
     	/* Block for 3 seconds to see if there are any incoming messages */
     	printf("Waiting on recveiving messages...\n");
     	rc = poll(fds, nfds, timeout);
@@ -101,7 +103,7 @@ int main(int argc, char* argv[])
     	} else if (rc == 0) {
     		/* Block for 3 seconds to see if there are inputs from the console */
     		printf("Waiting on input from console...\n");
-    		rc = poll(&cfd, nfds, 5*1000); 
+    		rc = poll(&cfd, nfds, timeout); 
 
     		if (rc == -1) {
     			/* ERROR */
@@ -134,8 +136,100 @@ int main(int argc, char* argv[])
 			    	fflush(stdout);
 			    }
 			}
-    	}
-    }
+    	} /* End of poll errors or command console */
+
+        /* Descriptor(s) are readable. Filter through all */
+        currSize = nfds;
+
+        /* Iterate through FDs to find those with a return value of POLLIN */
+        /* Determine if descriptor is listening or active connection */
+        for (int i = 0; i < currSize; i++) {
+            if(fds[i].revents == 0) continue;
+
+            /* Check if unexpected result */
+            if(fds[i].revents != POLLIN) {
+                perror("ERROR: Unexpected revents result");
+                endServer = true;
+                break;
+            }
+
+            /* Check if incoming connection is readable */
+            if (fds[i].fd == sdTCP) {
+                printf("TCP listen socket is readable\n");
+
+                /* Accept all incoming connections before looping back to listen for more incoming connections or console commands */
+                do {
+                    newSD = accept(sdTCP, NULL, NULL);
+                    if (newSD == -1) {
+                        perror("ERROR: accept() failed");
+                        endServer = true;
+                        break;
+                    }
+
+                    /* Add incoming connection to poll fd struct */
+                    printf("New incoming connection - %d\n", newSD);
+                    fflush(stdout);
+                    fds[nfds].fd = newSD;
+                    fds[nfds].events = POLLIN;
+                    nfds++;
+                } while (newSD != -1);
+            } else {
+                /* Not a listening socket, therefore, existing connection must be readable */
+                printf("Descriptor %d is readable\n", fds[i].fd);
+                closeConn = false;
+                /* Retrieve incoming data on current socket before continuing */
+                do {
+                    rc = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+                    if (rc == -1) {
+                        perror("ERROR: recv() failed");
+                        closeConn = true;
+                        break;
+                    } else if (rc == 0) {
+                        /* Check if client closed connection */
+                        printf("Connection closed\n");
+                        closeConn = true;
+                        break;
+                    } else {
+                        len = rc;
+                        printf("%d bytes received\n", len);
+
+                        /* BASIC echo data back to the client */
+                        rc = send(fds[i].fd, buffer, len, 0);
+                        if (rc == -1) {
+                            perror("ERROR: send() failed");
+                            closeConn = true;
+                            break;
+                        }
+                    }
+                } while (true);
+
+                /* Clean up this active connection and clean up process */
+                /* Remove descriptor */
+                if (closeConn) {
+                    close(fds[i].fd);
+                    fds[i].fd = -1;
+                    compressArr = true;
+                } 
+            } /* End of existing connection is readable */
+        } /* End of loop over pollable descriptors */
+
+        /* Remove current connection from fds */
+        if (compressArr) {
+            compressArr = false;
+            /* Iterate through fds and find the closed connection */
+            for (int i = 0; i < nfds; i++) {
+                if (fds[i].fd == -1) {
+                    /* Iterate through remaining fds and replace current closed connection */
+                    for (int j = i; j < nfds; j++) {
+                        /* Only shift fd information because all events are POLLIN and revents is output */
+                        fds[j].fd = fds[j+1].fd;
+                    }
+                    nfds--;
+                }
+            }
+        }
+
+    } while (!endServer);
 
     /* Close file descriptors */
     for (int i = 0; i < nfds; i++) {
@@ -143,6 +237,6 @@ int main(int argc, char* argv[])
     		close(fds[i].fd);
     	}
     }
-    
+
     return EXIT_SUCCESS;
 }
