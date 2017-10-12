@@ -67,7 +67,7 @@ bool tweet() {
     fflush(stdout);
     getline(std::cin, message, '\n');
 
-    /* Send message */
+    /* Send */
     char messageArr[BUFFER_SIZE];
     strcpy(messageArr, message.c_str());
     int n = write(sd, messageArr, sizeof(messageArr));
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
     }
 
     int rc, on, nfds = 1;
-    int currSize = 0, len = 0;
+    int currSize = 0;
     int port = atoi(argv[1]), sdTCP = -1, newSD = -1;
     bool endServer = false, closeConn = false, compressArr = false;
 
