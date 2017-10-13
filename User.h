@@ -58,7 +58,7 @@ public:
       * @effects Creates a partial Li of events recipient User does not know about
         @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
 	  */
-	void sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT);
+	void sendTweet(Tweet tweet, std::map<std::pair<std::string, int>, std::vector<int> > matrixT);
 
 	/**
 	  * @effects Displays an ordered list of tweets from all User's this User is not blocked from seeing
@@ -112,7 +112,7 @@ public:
 	  * @effects Checks if this User knows that userName knows about event eR has occured
 	  * @returns true if this User knows that the userName knows about the event and false otherwise
 	  */
-	bool hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, std::string userName);
+	bool hasRecv(std::map<std::pair<std::string, int>, std::vector<int> > matrixT, Event eR, std::string userName);
 
 	/**
 	  * @param sender: User who sent message
@@ -124,7 +124,7 @@ public:
 	  * @effects Updates direct and indirect knowledge based on sending User's matrix
 	  * @modifies tweets, Li, matrixT
 	  */
-	void onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::map<User, std::vector<int> > matrixTk);
+	void onRecv(User sender, Tweet tweet, std::vector<Event> partialLog, std::map<std::pair<std::string, int>, std::vector<int> > matrixTk);
 
 	/**
 	  * @returns Private field
@@ -149,7 +149,7 @@ public:
 	/**
 	  * @returns Private field matrixT
 	  */
-	std::map<User, std::vector<int> > getMatrixT() const {return matrixT;}
+	std::map<std::pair<std::string, int>, std::vector<int> > getMatrixT() const {return matrixT;}
 
 	/**
 	  * @returns Private field Li
@@ -185,13 +185,13 @@ private:
 	/* Amount of events that have causaully occurred on this User */
 	int cI;
 	/* An NxN matrix representing direct and indirect knowledge of other Users */
-	/* Key: User */
+	/* Key: <userName of given user, index of given user> */
 	/* Value: Pair to hold index of User in matrix and an ordered list of integers that represent the causaully ordered events at that specific User */
-	std::map<User, std::vector<int> > matrixT;
+	std::map<std::pair<std::string, int>, std::vector<int> > matrixT;
 	/* Log: An ordered list of events */
 	std::vector<Event> Li;
 	/* Dictionary: A map of blocked status based on other Users */
-	/* Key: User -> userName */
+	/* Key: userName */
 	/* Value: pair.first -> Represents if this User blocked the userName */
 	/*        pair.second-> Represents if this User is blocked by the userName */
 	std::map<std::string, std::pair<bool, bool> > blockedStatus;
