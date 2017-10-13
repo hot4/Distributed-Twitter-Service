@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cerrno>
 #include <cstring>
+#include <vector>
 #include <unistd.h> /* close file descriptor */
 #include <poll.h> /* struct poll */
 #include <stdio.h>
@@ -10,6 +11,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+
+#include "User.h"
 
 #define BUFFER_SIZE 1024
 
@@ -31,7 +34,7 @@ void createDirectory() {
   * @effects Sends input from console to specified port
   * @returns true if no library functions failed, false otherwise
   */
-bool tweet() {
+bool tweet(User &user) {
     /* Create TCP client socket (endpoint) */
     int sd = socket(PF_INET, SOCK_STREAM, 0);
     if (sd < 0) {
@@ -48,7 +51,7 @@ bool tweet() {
 
     /* Establish connection to server at specified port */
     std::string outPort;
-    printf("Input Port to Send Message: ");
+    printf("Input Port Number to Connect to: ");
     fflush(stdout);
     getline(std::cin, outPort, '\n');
 
@@ -67,6 +70,19 @@ bool tweet() {
     fflush(stdout);
     getline(std::cin, message, '\n');
 
+    /* HARD CODE: Determine which userName and index to use */
+    int index = -1;
+    std::string userName;
+    if (user.getUserName() == "hot4") {
+        index = 1;
+        userName = "ajay426neo";
+    } else {
+        index = 0;
+        userName = "hot4";
+    }
+
+    user.onEvent(1, std::make_pair<std::string, int>(userName, index), message);
+
     /* Send */
     char messageArr[BUFFER_SIZE];
     strcpy(messageArr, message.c_str());
@@ -80,10 +96,14 @@ bool tweet() {
     return true;
 }
 
+void viewTweets(User user) {
+    user.view();
+}
+
 int main(int argc, char* argv[])
 {
-    if (argc != 2) {
-        printf("ERROR: Invalid amount of command line arguments. Include port number.\n");
+    if (argc != 4) {
+        printf("ERROR: Invalid amount of command line arguments. Include port number, username, and index.\n");
         fflush(stdout);
         exit(EXIT_SUCCESS);
     }
@@ -149,6 +169,14 @@ int main(int argc, char* argv[])
 
     createDirectory();
 
+    /* HARDCODE: Create followers */
+    User user = User(argv[2], atoi(argv[3]));
+    std::vector<User> allUsers;
+    allUsers.push_back(User("hot4", 0));
+    allUsers.push_back(User("ajay426neo", 1));
+
+    user.follow(allUsers);
+
     do {
         /* Block for 3 seconds to see if there are any incoming messages */
         printf("Waiting on recveiving messages...\n");
@@ -177,15 +205,17 @@ int main(int argc, char* argv[])
 
                 /* Checks which command was prompted */
                 if (cmd == "Tweet") {
-                    if (!tweet()) return EXIT_FAILURE;
+                    if (!tweet(user)) return EXIT_FAILURE;
                 } else if (cmd == "Block") {
                     printf("Block Success\n");
                     fflush(stdout);
                 } else if (cmd == "Unblock") {
                     printf("Unblock Success\n");
                     fflush(stdout);
+                } else if (cmd == "View") {
+                    viewTweets(user);
                 } else {
-                    printf("Incorrect command provided. Use {Tweet, Block, Unblock}\n");
+                    printf("Incorrect command provided. Use {Tweet, Block, Unblock, View}\n");
                     fflush(stdout);
                 }
             }

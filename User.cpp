@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <iostream>
 #include <map>
 #include <algorithm>
 
@@ -38,7 +39,7 @@ User::User(){}
   * @modifies Private fields
   * @returns A new User object
   */
-User::User(std::string userName, int index) : userName(userName), index(index), cI(0) {}
+User::User(std::string userName, int index) : userName(userName), index(index), cI(0) {	}
 
 /**
   * @param u: User to compare to
@@ -91,7 +92,7 @@ void User::follow(std::vector<User> users) {
   * @modifies matrixT
   */
 void User::addToMatrixT(User user, std::vector<int> knowledge) {
-	(this->matrixT).insert(std::pair<User, std::vector<int> >(user, knowledge));	
+	(this->matrixT).insert(std::pair<std::pair<std::string, int>, std::vector<int> >(std::pair<std::string, int>(user.getUserName(), user.getIndex()), knowledge));	
 }
 
 /**
@@ -100,7 +101,7 @@ void User::addToMatrixT(User user, std::vector<int> knowledge) {
   * @effects Creates a partial Li of events recipient User does not know about
     @effects Sends tweet, Ti, and partial Li to all receipients who are not blocked by this User
   */
-void User::sendTweet(Tweet tweet, std::map<User, std::vector<int> > matrixT) {
+void User::sendTweet(Tweet tweet, std::map<std::pair<std::string, int>, std::vector<int> > matrixT) {
 	/* Add tweet to tweets */
 	(this->tweets).push_back(tweet);
 
@@ -162,12 +163,15 @@ void User::view() {
 		if (!(itr->second).second) {
 			/* Print userName */
 			printf("User: %s\n", tweet.getUserName().c_str());
+			fflush(stdout);
 			/* Print message */
 			printf("Message: %s\n", tweet.getMessage().c_str());
+			fflush(stdout);
 			/* Print local timestamp */
 			char buffer [buffSize];
 			strftime(buffer, buffSize, "%I:%M%p.\n\n", localtime(&(tweet.getRawTimeStamp())));
 			puts(buffer);
+			fflush(stdout);
 		}
 	}
 }
@@ -230,7 +234,14 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 	(this->cI)++;
 
 	/* Get value based on key and then access index to increment this User's Ti(i,i) */
-	((this->matrixT)[*this])[this->getIndex()]++;
+	std::map<std::pair<std::string, int>, std::vector<int> >::iterator itr = this->matrixT.begin();
+	while (itr != this->matrixT.end()) {
+		if (itr->first.first == this->getUserName()) {
+			itr->second[this->getIndex()]++;
+			break;
+		}
+		itr++;
+	}
 
 	/* Temporary place holders */
 	Event event;
@@ -263,10 +274,10 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
 
 	/* Add event to all partialLogs for Users */
 	std::map<std::string, std::list<Event> > partialLog = this->getPartialLog();
-	std::map<std::string, std::list<Event> >::iterator itr = partialLog.begin();
-	while (itr != partialLog.end()) {
-		(this->partialLog)[itr->first].push_back(event);
-		itr++;
+	std::map<std::string, std::list<Event> >::iterator itrPL = partialLog.begin();
+	while (itrPL != partialLog.end()) {
+		(this->partialLog)[itrPL->first].push_back(event);
+		itrPL++;
 	}
 }
 
@@ -277,13 +288,13 @@ void User::onEvent(int type, std::pair<std::string, int> recipient, std::string 
   * @effects Checks if this User knows that userName knows about event eR has occured
   * @returns true if this User knows that the userName knows about the event and false otherwise
   */
-bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, std::string userName) {
-	User user;
-	std::map<User, std::vector<int> >::iterator itr = matrixT.begin();
+bool User::hasRecv(std::map<std::pair<std::string, int>, std::vector<int> > matrixT, Event eR, std::string userName) {
+	std::pair<std::string, int> user;
+	std::map<std::pair<std::string, int>, std::vector<int> >::iterator itr = matrixT.begin();
 
 	while (itr != matrixT.end()) {
 		user = itr->first;
-		if (user.getUserName() == userName) break;
+		if (user.first == userName) break;
 		itr++;
 	}
 
@@ -301,7 +312,7 @@ bool User::hasRecv(std::map<User, std::vector<int> > matrixT, Event eR, std::str
   * @effects Updates direct and indirect knowledge based on sending User's matrix
   * @modifies tweets, Li, matrixT
   */
-void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User, std::vector<int> > matrixTk) {
+void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<std::pair<std::string, int>, std::vector<int> > matrixTk) {
 	/* Add tweet sent from sending User to this User's tweets*/
 	(this->tweets).push_back(tweet);
 	
@@ -351,30 +362,45 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 	}
 
 	/* Iterators for matrices */
-	std::map<User, std::vector<int> > selfMatrix = this->matrixT;
-	std::map<User, std::vector<int> >::iterator itrI = selfMatrix.begin();
-	std::map<User, std::vector<int> >::iterator itrK = matrixTk.begin();
+	std::map<std::pair<std::string, int> , std::vector<int> > selfMatrix = this->matrixT;
+	std::map<std::pair<std::string, int> , std::vector<int> >::iterator itrI = selfMatrix.begin();
+	std::map<std::pair<std::string, int> , std::vector<int> >::iterator itrK = matrixTk.begin();
 
 	/* Temporary place holders */
 	int amtOfUsers = selfMatrix.size();
 
+	/* Have pointer stop once this User is found */
+	while (itrI != selfMatrix.end()) {
+		if (itrI->first.first == this->getUserName()) break;
+		itrI++;
+	}
+
+	/* Have pointer stop once sender is founds */
+	while (itrK != matrixTk.end()) {
+		if (itrK->first.first == sender.getUserName()) break;
+		itrK++;
+	}
+
 	/* Update direct knowledge */
 	for (int j = 0; j < amtOfUsers; j++) {
 		/* Set Ti(i,j) = max of Ti(i, j) and Tk(k, j) */
-		((this->matrixT)[*this])[j] = std::max((selfMatrix[*this])[j], (matrixTk[sender])[j]);
+		(itrI->second)[j] = std::max((itrI->second)[j], (itrK->second)[j]);
 	}
+
+	itrI = selfMatrix.begin();
+	itrK = matrixTk.begin();
 
 	/* Update indirect knowledge */
 	while (itrI != selfMatrix.end()) {
 		/* Skip over direct knowledge */
-		if (this -> getIndex() == (itrI->first).getIndex()) {
+		if (itrI->first.first == this->getUserName()) {
 			itrI++;
 			itrK++;
-			continue;
 		}
+
 		/* Set Ti(j,k) = max of Ti(j, l) and Tk (j, l) where i != j (Direct knowledge) */
-		for (int j = 0; j < amtOfUsers; j++) {
-			((this->matrixT)[itrI->first][j]) = std::max((itrI->second)[j], (itrK->second)[j]);
+		for (int k = 0; k < amtOfUsers; k++) {
+			(itrI->second)[k] = std::max((itrI->second)[k], (itrK->second)[k]);
 		}
 
 		itrI++;
@@ -382,7 +408,7 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<User
 	}
 
 	/* Temporary place holder */
-	std::map<User, std::vector<int> > matrixT = this->getMatrixT();
+	// std::map<User, std::vector<int> > matrixT = this->getMatrixT();
 
 	/* partialLog iterator */
 	std::map<std::string, std::list<Event> >::iterator itrPL = this->partialLog.begin();
