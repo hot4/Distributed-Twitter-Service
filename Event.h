@@ -61,6 +61,7 @@ public:
       * @returns Private field type
 	  */
 	int getType() const {return type;}
+	void setType(int t) {type=t;}
 
 	/**
 	  * @returns Private field node
@@ -71,7 +72,7 @@ public:
 	  * @returns Private field flag;
 	  */
 	bool isTweet() const {return flag;}
-
+	bool setFlag(bool t) {flag=t;}
 	/**
 	  * @returns Private field recipient
 	  */
@@ -91,7 +92,21 @@ public:
 	  * @returns Private field rawTimeStamp
 	  */
 	time_t getRawTimeStamp() const {return rawTimeStamp;}
-
+	void setBorU(std::string a, int b, std::string c, int d, int pcI, int raw) {
+		node.first=a;
+		node.second=b;
+		recipient.first=c;
+		recipient.second=d;
+		cI=pcI;
+		rawTimeStamp=raw;
+	}
+	void setT(std::string a, int b, std::string m, int pcI, int raw) {
+		node.first=a;
+		node.second=b;
+		message=m;
+		cI=pcI;
+		rawTimeStamp=raw;
+	}
 	/* Private Fields */
 private:
 	/* Operation */

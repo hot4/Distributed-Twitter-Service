@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cerrno>
 #include <cstring>
-#include <vector>
 #include <unistd.h> /* close file descriptor */
 #include <poll.h> /* struct poll */
 #include <stdio.h>
@@ -11,13 +10,30 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-
-#include "User.h"
-
 #define BUFFER_SIZE 1024
-
+#include "Event.h"
+#include <vector>
+#include "User.h"
+#define BUFFER_SIZE 1024
 /* Global directory name */
 std::string DIRECTORY = "./storage/";
+
+#include <sstream>
+
+template <class T>
+inline std::string to_string (const T& t)
+{
+    std::stringstream ss;
+    ss << t;
+    return ss.str();
+}
+
+
+
+
+
+/* Global directory name */
+
 
 /**
  * @effects creates directory labeled "storage" if none exists
@@ -312,4 +328,156 @@ int main(int argc, char* argv[])
     }
 
     return EXIT_SUCCESS;
+}
+
+
+
+
+
+
+
+
+
+
+std::string addeventtostring(std::string s, Event* e){
+    s=s+"\n";
+    if(e->getType()==2){
+        //Block
+        s=s+ "B: " + e->getNode().first+"|" + to_string(e->getNode().second) +"|" + e->getRecipient().first+"|" +to_string(e->getRecipient().second) + "|"+ to_string(e->getcI())+"|" + to_string(e->getRawTimeStamp())+ "|\n";
+    }
+    if(e->getType()==3){
+        //Unblock
+        s=s+ "U: " + e->getNode().first+"|" + to_string(e->getNode().second) +"|" + e->getRecipient().first+"|" + to_string(e->getRecipient().second) +"|"+ to_string(e->getcI())+"|" + to_string(e->getRawTimeStamp())+ "|\n";
+    }
+    if(e->getType()==1){
+        //Tweet
+        s=s+ "T: " + e->getNode().first+"|" +to_string(e->getNode().second) +"|" + to_string(e->getcI())+"|" +to_string(e->getRawTimeStamp())+ "|"+e->getMessage() + "|\n";
+    }
+    return s;
+}
+
+
+
+Event* linetoevent(std::string s){
+    Event* fail=NULL;
+    Event* ev;
+    
+    if(s[0]=='B'){
+        char nodeusername[100];
+        ev->setType(2);
+        int i=3;
+        for(i=3;s[i]!='|';i++){
+            nodeusername[i-3]=s[i];
+        }
+        nodeusername[i-3]='\0';
+        char nodeindex[100];
+        int b;
+        for(b=i+1;s[b]!='|';b++){
+            nodeindex[b-i-1]=s[b];
+        }
+        nodeindex[b-i-1]='\0';
+        int c;
+        char RecUN[100];
+        for(c=b+1;s[c]!='|';c++){
+            RecUN[c-b-1]=s[c];
+        }
+        RecUN[c-b-1]='\0';
+        int d;
+        char RecInd[100];
+        for(d=c+1;s[d]!='|';d++){
+            RecInd[d-c-1]=s[d];
+        }
+        RecInd[d-c-1]='\0';
+        int e;
+        char ci[100];
+        for(e=d+1;s[e]!='|';e++){
+            ci[e-d-1]=s[e];
+        }
+        ci[e-d-1]='\0';
+        int f;
+        char RawTime[100];
+        for(f=e+1;s[f]!='|';f++){
+            RawTime[f-e-1]=s[f];
+        }
+        RawTime[f-e-1]='\0';
+        ev->setBorU(nodeusername, atoi(nodeindex), RecUN, atoi(RecInd), atoi(ci), atoi(RawTime));
+    }
+    else if(s[0]=='U'){
+        char nodeusername[100];
+        ev->setType(3);
+        int i=3;
+        for(i=3;s[i]!='|';i++){
+            nodeusername[i-3]=s[i];
+        }
+        nodeusername[i-3]='\0';
+        char nodeindex[100];
+        int b;
+        for(b=i+1;s[b]!='|';b++){
+            nodeindex[b-i-1]=s[b];
+        }
+        nodeindex[b-i-1]='\0';
+        int c;
+        char RecUN[100];
+        for(c=b+1;s[c]!='|';c++){
+            RecUN[c-b-1]=s[c];
+        }
+        RecUN[c-b-1]='\0';
+        int d;
+        char RecInd[100];
+        for(d=c+1;s[d]!='|';d++){
+            RecInd[d-c-1]=s[d];
+        }
+        RecInd[d-c-1]='\0';
+        int e;
+        char ci[100];
+        for(e=d+1;s[e]!='|';e++){
+            ci[e-d-1]=s[e];
+        }
+        ci[e-d-1]='\0';
+        int f;
+        char RawTime[100];
+        for(f=e+1;s[f]!='|';f++){
+            RawTime[f-e-1]=s[f];
+        }
+        RawTime[f-e-1]='\0';
+        ev->setBorU(nodeusername, atoi(nodeindex), RecUN, atoi(RecInd), atoi(ci), atoi(RawTime));
+    }
+    else if(s[0]=='T'){
+        char nodeusername[100];
+        ev->setType(3);
+        int i=3;
+        for(i=3;s[i]!='|';i++){
+            nodeusername[i-3]=s[i];
+        }
+        nodeusername[i-3]='\0';
+        char nodeindex[100];
+        int b;
+        for(b=i+1;s[b]!='|';b++){
+            nodeindex[b-i-1]=s[b];
+        }
+        nodeindex[b-i-1]='\0';
+        int c;
+        char ci[100];
+        for(c=b+1;s[c]!='|';c++){
+            ci[c-b-1]=s[c];
+        }
+        ci[c-b-1]='\0';
+        int d;
+        char RawTime[100];
+        for(d=c+1;s[d]!='|';d++){
+            RawTime[d-c-1]=s[d];
+        }
+        RawTime[d-c-1]='\0';
+        int e;
+        char message[100];
+        for(e=d+1;s[e]!='|';e++){
+            message[e-d-1]=s[e];
+        }
+        message[e-d-1]='\0';
+        ev->setT(nodeusername, atoi(nodeindex), message, atoi(ci), atoi(RawTime));
+    }
+    else{
+        return fail;
+    }
+    return ev;
 }
