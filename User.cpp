@@ -320,7 +320,7 @@ void User::onRecv(User sender, Tweet tweet, std::vector<Event> NP, std::map<std:
 	for (unsigned int i = 0; i < NP.size(); i++) {
 		Event event = NP[i];
 		/* Check if Event is Tweet */
-		if (event.isTweet()) {
+		if (event.getType() == 1) {
 			/* Convert Event to Tweet object and add to tweets */
 			Tweet tweet = Tweet(event.getNode().first, event.getMessage(), event.getRawTimeStamp());
 			(this->tweets.push_back(tweet));
