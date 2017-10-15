@@ -63,14 +63,16 @@ public:
 	int getType() const {return type;}
 
 	/**
+	  * @param type: new value to assign to private field
+	  * @effects Assigns new value to type
+	  * @modifies Private field type
+	  */
+	void setType(int type) {this->type = type;}
+
+	/**
 	  * @returns Private field node
 	  */
 	std::pair<std::string, int> getNode() const {return node;}
-
-	/**
-	  * @returns Private field flag;
-	  */
-	bool isTweet() const {return flag;}
 
 	/**
 	  * @returns Private field recipient
@@ -92,14 +94,47 @@ public:
 	  */
 	time_t getRawTimeStamp() const {return rawTimeStamp;}
 
+	/**
+	  * @param nodeName: userName of User where Event occurred
+	  * @param nodeIndex: Index of User where Event occurred
+	  * @param recipientName: userName of User where Event was received
+	  * @param cI: Lamport timestamp of when the Event occurred
+	  * @param rawTimeStamp: The time at which the Event occured
+	  * @effects Assigns parameters to private fields
+	  * @effects node, recipient, cI, and rawTimeStamp private fields
+	  */
+	void setBorU(std::string nodeName, int nodeIndex, std::string recipientName, int recipientIndex, int cI, int rawTimeStamp) {
+		this->node.first = nodeName;
+		this->node.second = nodeIndex;
+		this->recipient.first = recipientName;
+		this->recipient.second = recipientIndex;
+		this->cI = cI;
+		this->rawTimeStamp = rawTimeStamp;
+	}
+
+	/**
+	  * @param nodeName: userName of User where Event occurred
+	  * @param nodeIndex: Index of User where Event occurred
+	  * @param message: Contents of message being sent
+	  * @param cI: Lamport timestamp of when the Event occurred
+	  * @param rawTimeStamp: The time at which the Event occurred
+	  * @effects Assigns parameters to private fields
+	  * @modifies node, message, cI, and rawTimeStamp private fields
+	  */
+	void setT(std::string nodeName, int nodeIndex, std::string message, int cI, int rawTimeStamp) {
+		this->node.first = nodeName;
+		this->node.second = nodeIndex;
+		this->message = message;
+		this->cI = cI;
+		this->rawTimeStamp = rawTimeStamp;
+	}
+
 	/* Private Fields */
 private:
 	/* Operation */
 	int type;
 	/* Source of Event (userName, index) */
 	std::pair<std::string, int> node;
-	/* Indicates whether Event is Tweet or not */
-	bool flag;
 	/* Destination of Event (userName, index) */
 	std::pair<std::string, int> recipient;
 	/* Contents of Tweet */
