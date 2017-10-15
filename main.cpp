@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cerrno>
 #include <cstring>
-#include <vector>
 #include <unistd.h> /* close file descriptor */
 #include <poll.h> /* struct poll */
 #include <stdio.h>
@@ -11,13 +10,22 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-
-#include "User.h"
-
 #define BUFFER_SIZE 1024
-
+#include "Event.h"
+#include <vector>
+#include "User.h"
+#define BUFFER_SIZE 1024
 /* Global directory name */
 std::string DIRECTORY = "./storage/";
+
+#include <sstream>
+
+template <class T>
+inline std::string to_string (const T& t) {
+    std::stringstream ss;
+    ss << t;
+    return ss.str();
+}
 
 /**
  * @effects creates directory labeled "storage" if none exists
@@ -28,6 +36,58 @@ void createDirectory() {
     if (stat(DIRECTORY.c_str(), &st) == -1) {
         mkdir(DIRECTORY.c_str(), 0700);
     }
+}
+
+std::string eventToString(Event event){
+    std::string eventString;
+
+    /* Include all shared information between different Events {Tweet, Block, Unblock} */
+    eventString += event.getType() + "|" +
+                   event.getNode().first + "|" + to_string(event.getNode().second) + "|" + 
+                   event.getRecipient().first + "|" + to_string(event.getRecipient().second) + "|" +
+                   to_string(event.getcI()) + "|" +
+                   to_string(event.getRawTimeStamp()) + "|";
+
+    /* Add message of Event if the type is Tweet */                
+    if (event.getType() == 1) {
+        eventString += event.getMessage();
+    }
+
+    return eventString;
+}
+
+Event stringToEvent(std::string eventString) {
+    /* Parse string and store tokens */
+    std::string token;
+    std::vector<std::string> tokens;
+    std::string delimiter = "|";
+    size_t position = 0;
+
+    /* Get substring from [0, position) where position is where the delimeter was found */
+    while ((position = eventString.find(delimiter)) != std::string::npos) {
+        token = eventString.substr(0, position);
+        tokens.push_back(token);
+        /* Truncate string each time a delimiter is found */
+        eventString.erase(0, position + delimiter.length());
+    }
+
+    /* Temporary place holder for private fields for Event class */
+    int type = atoi(tokens[0].c_str());
+    std::string nodeName = tokens[1];
+    int nodeIndex = atoi(tokens[2].c_str());
+    std::string recipientName = tokens[3];
+    int recipientIndex = atoi(tokens[4].c_str());
+    int cI = atoi(tokens[5].c_str());
+    time_t rawTimeStamp = atoi(tokens[6].c_str());
+
+    /* Create Tweet Event */
+    if (type == 1) {
+        std::string message = tokens[7];
+        return Event(type, std::pair<std::string, int>(nodeName, nodeIndex), std::pair<std::string, int>(recipientName, recipientIndex), message, cI, rawTimeStamp);
+    }
+
+    /* Create Block/Unblock Event */
+    return Event(type, std::pair<std::string, int>(nodeName, nodeIndex), std::pair<std::string, int>(recipientName, recipientIndex), cI, rawTimeStamp);
 }
 
 /**

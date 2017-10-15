@@ -18,7 +18,7 @@ Event::Event() {}
   * @modifies type, node, and rawTimeStamp private fields
   * @retunrs A new Event object
   */
-Event::Event(int type, std::pair<std::string, int> node, std::pair<std::string, int> recipient, int cI, time_t rawTimeStamp) : type(type), node(node), flag(false), cI(cI), rawTimeStamp(rawTimeStamp) {}
+Event::Event(int type, std::pair<std::string, int> node, std::pair<std::string, int> recipient, int cI, time_t rawTimeStamp) : type(type), node(node), cI(cI), rawTimeStamp(rawTimeStamp) {}
 
 /**
   * @param type: Catergorized to be one the following values {block | unblock| tweet}
@@ -33,7 +33,7 @@ Event::Event(int type, std::pair<std::string, int> node, std::pair<std::string, 
   * @modifies type, node, recipient, message, and rawTimeStamp private fields
   * @retunrs A new Event object
   */
-Event::Event(int type, std::pair<std::string, int> node, std::pair<std::string, int> recipient, std::string message, int cI, time_t rawTimeStamp) : type(type), node(node), flag(true), recipient(recipient), message(message), cI(cI), rawTimeStamp(rawTimeStamp) {}
+Event::Event(int type, std::pair<std::string, int> node, std::pair<std::string, int> recipient, std::string message, int cI, time_t rawTimeStamp) : type(type), node(node), recipient(recipient), message(message), cI(cI), rawTimeStamp(rawTimeStamp) {}
 
 /**
   * @param e: Event to assign values from
@@ -42,8 +42,7 @@ Event::Event(int type, std::pair<std::string, int> node, std::pair<std::string, 
 Event& Event::operator= (const Event &e) {
   this->type = e.getType();
   this->node = e.getNode();
-  this->flag = e.isTweet();
-  if (this->isTweet()) {
+  if (e.getType() == 1) {
     this->recipient = e.getRecipient();
     this->message = e.getMessage();
   }
@@ -58,7 +57,6 @@ Event& Event::operator= (const Event &e) {
 bool Event::operator== (const Event &e) {
   return (this->getType() == e.getType()) && 
          (this->getNode().first == e.getNode().first) && (this->getNode().second == e.getNode().second) &&
-         (this->isTweet() == e.isTweet()) && 
          (this->getRecipient().first == e.getRecipient().first) && (this->getRecipient().second == e.getRecipient().second) &&
          (this->getMessage() == e.getMessage()) && 
          (this->getcI() == e.getcI()) && 
@@ -70,7 +68,7 @@ bool Event::operator== (const Event &e) {
   * @returns Translation of Integer to appropriate string value
   */
 std::string Event::defineType(int type) {
-  switch (1) {
+  switch (type) {
     /* Map value of 1 with Tweet */
     case 1: 
       return "Tweet";
@@ -80,5 +78,7 @@ std::string Event::defineType(int type) {
     /* Map value of 3 with Unblock */
     case 3: 
       return "Unblock";
+    default:
+      return "";
   }
 }
